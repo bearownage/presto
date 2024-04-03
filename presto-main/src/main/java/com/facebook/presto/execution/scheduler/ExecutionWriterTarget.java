@@ -204,4 +204,38 @@ public abstract class ExecutionWriterTarget
             return handle.toString();
         }
     }
+
+    public static class MergeHandle
+            extends ExecutionWriterTarget
+    {
+        private final TableHandle handle;
+        private final SchemaTableName schemaTableName;
+
+        @JsonCreator
+        public MergeHandle(
+                @JsonProperty("handle") TableHandle handle,
+                @JsonProperty("schemaTableName") SchemaTableName schemaTableName)
+        {
+            this.handle = requireNonNull(handle, "handle is null");
+            this.schemaTableName = requireNonNull(schemaTableName, "schemaTableName is null");
+        }
+
+        @JsonProperty
+        public TableHandle getHandle()
+        {
+            return handle;
+        }
+
+        @JsonProperty
+        public SchemaTableName getSchemaTableName()
+        {
+            return schemaTableName;
+        }
+
+        @Override
+        public String toString()
+        {
+            return handle.toString();
+        }
+    }
 }
