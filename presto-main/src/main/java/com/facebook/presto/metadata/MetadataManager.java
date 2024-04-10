@@ -947,6 +947,21 @@ public class MetadataManager
         metadata.finishUpdate(session.toConnectorSession(connectorId), tableHandle.getConnectorHandle(), fragments);
     }
 
+    public TableHandle beginMerge(Session session, TableHandle tableHandle, List<ColumnHandle> updatedColumns)
+    {
+        ConnectorId connectorId = tableHandle.getConnectorId();
+        ConnectorMetadata metadata = getMetadataForWrite(session, connectorId);
+        ConnectorTableHandle newHandle = metadata.beginMerge(session.toConnectorSession(connectorId), tableHandle.getConnectorHandle(), updatedColumns);
+        return new TableHandle(tableHandle.getConnectorId(), newHandle, tableHandle.getTransaction(), tableHandle.getLayout());
+    }
+
+    public void finishMerge(Session session, TableHandle tableHandle, Collection<Slice> fragments)
+    {
+        ConnectorId connectorId = tableHandle.getConnectorId();
+        ConnectorMetadata metadata = getMetadata(session, connectorId);
+        metadata.finishUpdate(session.toConnectorSession(connectorId), tableHandle.getConnectorHandle(), fragments);
+    }
+
     @Override
     public Optional<ConnectorId> getCatalogHandle(Session session, String catalogName)
     {

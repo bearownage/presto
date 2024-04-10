@@ -583,6 +583,16 @@ public interface ConnectorMetadata
         throw new PrestoException(NOT_SUPPORTED, "This connector does not support update");
     }
 
+    default ConnectorTableHandle beginMerge(ConnectorSession session, ConnectorTableHandle tableHandle, List<ColumnHandle> updatedColumns)
+    {
+        throw new PrestoException(NOT_SUPPORTED, "This connector does not support merge");
+    }
+
+    default void finishMerge(ConnectorSession session, ConnectorTableHandle tableHandle, Collection<Slice> fragments)
+    {
+        throw new PrestoException(NOT_SUPPORTED, "This connector does not support merge");
+    }
+
     /**
      * Create the specified view. The data for the view is opaque to the connector.
      */
