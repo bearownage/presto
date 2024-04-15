@@ -48,6 +48,7 @@ statement
          (WITH properties)?                                            #createTable
     | DROP TABLE (IF EXISTS)? qualifiedName                            #dropTable
     | INSERT INTO qualifiedName columnAliases? query                   #insertInto
+    | MERGE INTO qualifiedName (USING query)?                          #mergeInto
     | DELETE FROM qualifiedName (WHERE booleanExpression)?             #delete
     | TRUNCATE TABLE qualifiedName                                     #truncateTable
     | ALTER TABLE (IF EXISTS)? from=qualifiedName
@@ -619,7 +620,7 @@ nonReserved
     | JSON
     | KEY
     | LANGUAGE | LAST | LATERAL | LEVEL | LIMIT | LOGICAL
-    | MAP | MATERIALIZED | MINUTE | MONTH
+    | MAP | MATERIALIZED | MERGE | MINUTE | MONTH
     | NAME | NFC | NFD | NFKC | NFKD | NO | NONE | NULLIF | NULLS
     | OF | OFFSET | ONLY | OPTION | ORDINALITY | OUTPUT | OVER
     | PARTITION | PARTITIONS | POSITION | PRECEDING | PRIMARY | PRIVILEGES | PROPERTIES
@@ -743,6 +744,7 @@ LOCALTIMESTAMP: 'LOCALTIMESTAMP';
 LOGICAL: 'LOGICAL';
 MAP: 'MAP';
 MATERIALIZED: 'MATERIALIZED';
+MERGE : 'MERGE';
 MINUTE: 'MINUTE';
 MONTH: 'MONTH';
 NAME: 'NAME';

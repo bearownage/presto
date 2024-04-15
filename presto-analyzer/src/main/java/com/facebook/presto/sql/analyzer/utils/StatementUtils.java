@@ -103,6 +103,7 @@ public final class StatementUtils
         builder.put(Delete.class, QueryType.DELETE);
         builder.put(Update.class, QueryType.UPDATE);
 
+
         builder.put(ShowCatalogs.class, QueryType.DESCRIBE);
         builder.put(ShowCreate.class, QueryType.DESCRIBE);
         builder.put(ShowCreateFunction.class, QueryType.DESCRIBE);
