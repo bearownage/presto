@@ -15,29 +15,7 @@ package com.facebook.presto.spi.connector;
 
 import com.facebook.presto.common.predicate.TupleDomain;
 import com.facebook.presto.common.type.Type;
-import com.facebook.presto.spi.ColumnHandle;
-import com.facebook.presto.spi.ColumnMetadata;
-import com.facebook.presto.spi.ConnectorInsertTableHandle;
-import com.facebook.presto.spi.ConnectorMetadataUpdateHandle;
-import com.facebook.presto.spi.ConnectorNewTableLayout;
-import com.facebook.presto.spi.ConnectorOutputTableHandle;
-import com.facebook.presto.spi.ConnectorResolvedIndex;
-import com.facebook.presto.spi.ConnectorSession;
-import com.facebook.presto.spi.ConnectorTableHandle;
-import com.facebook.presto.spi.ConnectorTableLayout;
-import com.facebook.presto.spi.ConnectorTableLayoutHandle;
-import com.facebook.presto.spi.ConnectorTableLayoutResult;
-import com.facebook.presto.spi.ConnectorTableMetadata;
-import com.facebook.presto.spi.ConnectorViewDefinition;
-import com.facebook.presto.spi.Constraint;
-import com.facebook.presto.spi.MaterializedViewDefinition;
-import com.facebook.presto.spi.MaterializedViewStatus;
-import com.facebook.presto.spi.PrestoException;
-import com.facebook.presto.spi.QueryId;
-import com.facebook.presto.spi.SchemaTableName;
-import com.facebook.presto.spi.SchemaTablePrefix;
-import com.facebook.presto.spi.SystemTable;
-import com.facebook.presto.spi.TableLayoutFilterCoverage;
+import com.facebook.presto.spi.*;
 import com.facebook.presto.spi.api.Experimental;
 import com.facebook.presto.spi.constraints.TableConstraint;
 import com.facebook.presto.spi.security.GrantInfo;
@@ -581,6 +559,16 @@ public interface ConnectorMetadata
     default void finishUpdate(ConnectorSession session, ConnectorTableHandle tableHandle, Collection<Slice> fragments)
     {
         throw new PrestoException(NOT_SUPPORTED, "This connector does not support update");
+    }
+
+    default ConnectorMergeTableHandle beginMerge(ConnectorSession session, ConnectorMergeTableHandle tableHandle, List<ColumnHandle> updatedColumns)
+    {
+        throw new PrestoException(NOT_SUPPORTED, "This connector does not support merge");
+    }
+
+    default Optional<ConnectorOutputMetadata>  finishMerge(ConnectorSession session, ConnectorMergeTableHandle tableHandle, Collection<Slice> fragments)
+    {
+        throw new PrestoException(NOT_SUPPORTED, "This connector does not support merge");
     }
 
     /**

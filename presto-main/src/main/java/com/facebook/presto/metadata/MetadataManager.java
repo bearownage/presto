@@ -27,30 +27,7 @@ import com.facebook.presto.common.predicate.TupleDomain;
 import com.facebook.presto.common.type.Type;
 import com.facebook.presto.common.type.TypeSignature;
 import com.facebook.presto.execution.QueryManager;
-import com.facebook.presto.spi.ColumnHandle;
-import com.facebook.presto.spi.ColumnMetadata;
-import com.facebook.presto.spi.ConnectorId;
-import com.facebook.presto.spi.ConnectorInsertTableHandle;
-import com.facebook.presto.spi.ConnectorMetadataUpdateHandle;
-import com.facebook.presto.spi.ConnectorOutputTableHandle;
-import com.facebook.presto.spi.ConnectorResolvedIndex;
-import com.facebook.presto.spi.ConnectorSession;
-import com.facebook.presto.spi.ConnectorTableHandle;
-import com.facebook.presto.spi.ConnectorTableLayoutHandle;
-import com.facebook.presto.spi.ConnectorTableLayoutResult;
-import com.facebook.presto.spi.ConnectorTableMetadata;
-import com.facebook.presto.spi.ConnectorViewDefinition;
-import com.facebook.presto.spi.Constraint;
-import com.facebook.presto.spi.MaterializedViewDefinition;
-import com.facebook.presto.spi.MaterializedViewStatus;
-import com.facebook.presto.spi.PrestoException;
-import com.facebook.presto.spi.QueryId;
-import com.facebook.presto.spi.SchemaTableName;
-import com.facebook.presto.spi.SchemaTablePrefix;
-import com.facebook.presto.spi.SystemTable;
-import com.facebook.presto.spi.TableHandle;
-import com.facebook.presto.spi.TableLayoutFilterCoverage;
-import com.facebook.presto.spi.TableMetadata;
+import com.facebook.presto.spi.*;
 import com.facebook.presto.spi.analyzer.MetadataResolver;
 import com.facebook.presto.spi.analyzer.ViewDefinition;
 import com.facebook.presto.spi.connector.ConnectorCapabilities;
@@ -875,6 +852,16 @@ public class MetadataManager
     }
 
     @Override
+    public MergeTableHandle beginMerge(Session session, TableHandle tableHandle) {
+        return null;
+    }
+
+    @Override
+    public Optional<ConnectorOutputMetadata> finishMerge(Session session, InsertTableHandle tableHandle, Collection<Slice> fragments, Collection<ComputedStatistics> computedStatistics) {
+        return Optional.empty();
+    }
+
+    @Override
     public ColumnHandle getDeleteRowIdColumnHandle(Session session, TableHandle tableHandle)
     {
         ConnectorId connectorId = tableHandle.getConnectorId();
@@ -947,20 +934,19 @@ public class MetadataManager
         metadata.finishUpdate(session.toConnectorSession(connectorId), tableHandle.getConnectorHandle(), fragments);
     }
 
-    public TableHandle beginMerge(Session session, TableHandle tableHandle, List<ColumnHandle> updatedColumns)
+    public MergeTableHandle beginMerge(Session session, MergeTableHandle tableHandle, List<ColumnHandle> updatedColumns)
     {
         ConnectorId connectorId = tableHandle.getConnectorId();
         ConnectorMetadata metadata = getMetadataForWrite(session, connectorId);
-        ConnectorTableHandle newHandle = metadata.beginMerge(session.toConnectorSession(connectorId), tableHandle.getConnectorHandle(), updatedColumns);
-        return new TableHandle(tableHandle.getConnectorId(), newHandle, tableHandle.getTransaction(), tableHandle.getLayout());
+        ConnectorMergeTableHandle newHandle = metadata.beginMerge(session.toConnectorSession(connectorId), tableHandle.getConnectorHandle(), updatedColumns);
+        return new MergeTableHandle(tableHandle.getConnectorId(), tableHandle.getTransactionHandle(), newHandle);
     }
 
-    @Override
-    public void finishMerge(Session session, TableHandle tableHandle, Collection<Slice> fragments)
+    public Optional<ConnectorOutputMetadata> finishMerge(Session session, MergeTableHandle tableHandle, Collection<Slice> fragments)
     {
         ConnectorId connectorId = tableHandle.getConnectorId();
         ConnectorMetadata metadata = getMetadata(session, connectorId);
-        metadata.finishMerge(session.toConnectorSession(connectorId), tableHandle.getConnectorHandle(), fragments);
+        return metadata.finishMerge(session.toConnectorSession(connectorId), tableHandle.getConnectorHandle(), fragments);
     }
 
     @Override

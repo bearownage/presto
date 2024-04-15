@@ -305,6 +305,16 @@ public interface Metadata
     Optional<ConnectorOutputMetadata> finishInsert(Session session, InsertTableHandle tableHandle, Collection<Slice> fragments, Collection<ComputedStatistics> computedStatistics);
 
     /**
+     * Begin merge query
+     */
+    MergeTableHandle beginMerge(Session session, TableHandle tableHandle);
+
+    /**
+     * Finish merge query
+     */
+    Optional<ConnectorOutputMetadata> finishMerge(Session session, InsertTableHandle tableHandle, Collection<Slice> fragments, Collection<ComputedStatistics> computedStatistics);
+
+    /**
      * Get the row ID column handle used with UpdatablePageSource#deleteRows.
      */
     ColumnHandle getDeleteRowIdColumnHandle(Session session, TableHandle tableHandle);

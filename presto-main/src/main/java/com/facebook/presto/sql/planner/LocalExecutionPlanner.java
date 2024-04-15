@@ -3455,7 +3455,7 @@ public class LocalExecutionPlanner
                 return Optional.empty();
             }
             else if (target instanceof ExecutionWriterTarget.MergeHandle) {
-                return optional.empty();
+                return Optional.empty();
             }
             else {
                 throw new AssertionError("Unhandled target type: " + target.getClass().getName());
