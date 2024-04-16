@@ -415,6 +415,16 @@ public abstract class DelegatingMetadataManager
     }
 
     @Override
+    public MergeTableHandle beginMerge(Session session, TableHandle tableHandle) {
+        return delegate.beginMerge(session, tableHandle);
+    }
+
+    @Override
+    public Optional<ConnectorOutputMetadata> finishMerge(Session session, InsertTableHandle tableHandle, Collection<Slice> fragments, Collection<ComputedStatistics> computedStatistics) {
+        return delegate.finishMerge(session, tableHandle, fragments, computedStatistics);
+    }
+
+    @Override
     public Optional<ConnectorId> getCatalogHandle(Session session, String catalogName)
     {
         return delegate.getCatalogHandle(session, catalogName);
