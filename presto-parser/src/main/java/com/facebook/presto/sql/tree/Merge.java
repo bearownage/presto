@@ -35,11 +35,6 @@ public class Merge
         this.query = requireNonNull(query, "query is null");
     }
 
-    public QualifiedName getTable()
-    {
-        return target;
-    }
-
     public QualifiedName getTarget()
     {
         return target;
