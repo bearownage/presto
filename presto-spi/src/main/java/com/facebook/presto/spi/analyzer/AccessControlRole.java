@@ -17,5 +17,6 @@ public enum AccessControlRole
 {
     TABLE_CREATE,
     TABLE_INSERT,
-    TABLE_DELETE
+    TABLE_DELETE,
+    TABLE_MERGE
 }

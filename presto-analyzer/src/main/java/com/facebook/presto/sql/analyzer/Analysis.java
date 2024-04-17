@@ -30,27 +30,7 @@ import com.facebook.presto.spi.security.AccessControl;
 import com.facebook.presto.spi.security.AccessControlContext;
 import com.facebook.presto.spi.security.AllowAllAccessControl;
 import com.facebook.presto.spi.security.Identity;
-import com.facebook.presto.sql.tree.ExistsPredicate;
-import com.facebook.presto.sql.tree.Expression;
-import com.facebook.presto.sql.tree.FunctionCall;
-import com.facebook.presto.sql.tree.GroupingOperation;
-import com.facebook.presto.sql.tree.Identifier;
-import com.facebook.presto.sql.tree.InPredicate;
-import com.facebook.presto.sql.tree.Join;
-import com.facebook.presto.sql.tree.LambdaArgumentDeclaration;
-import com.facebook.presto.sql.tree.Node;
-import com.facebook.presto.sql.tree.NodeRef;
-import com.facebook.presto.sql.tree.Offset;
-import com.facebook.presto.sql.tree.OrderBy;
-import com.facebook.presto.sql.tree.Parameter;
-import com.facebook.presto.sql.tree.QuantifiedComparisonExpression;
-import com.facebook.presto.sql.tree.Query;
-import com.facebook.presto.sql.tree.QuerySpecification;
-import com.facebook.presto.sql.tree.Relation;
-import com.facebook.presto.sql.tree.SampledRelation;
-import com.facebook.presto.sql.tree.Statement;
-import com.facebook.presto.sql.tree.SubqueryExpression;
-import com.facebook.presto.sql.tree.Table;
+import com.facebook.presto.sql.tree.*;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -168,6 +148,7 @@ public class Analysis
     private Optional<Insert> insert = Optional.empty();
     private Optional<RefreshMaterializedViewAnalysis> refreshMaterializedViewAnalysis = Optional.empty();
     private Optional<TableHandle> analyzeTarget = Optional.empty();
+    private Optional<Merge> merge = Optional.empty();
 
     private Optional<List<ColumnMetadata>> updatedColumns = Optional.empty();
 
@@ -675,6 +656,12 @@ public class Analysis
         return createTableComment;
     }
 
+    public void setMerge(Merge merge) { this.merge = Optional.of(merge); }
+
+    public Optional<Merge> getMerge() {
+        return merge;
+    }
+
     public void setInsert(Insert insert)
     {
         this.insert = Optional.of(insert);
@@ -1010,6 +997,29 @@ public class Analysis
         public List<ColumnHandle> getColumns()
         {
             return columns;
+        }
+
+        public TableHandle getTarget()
+        {
+            return target;
+        }
+    }
+
+    @Immutable
+    public static final class Merge
+    {
+        private final TableHandle target;
+        private final Query query;
+
+        public Merge(TableHandle target, Query query)
+        {
+            this.target = requireNonNull(target, "target is null");
+            this.query = requireNonNull(query, "query is null");
+        }
+
+        public Query getQuery()
+        {
+            return query;
         }
 
         public TableHandle getTarget()
