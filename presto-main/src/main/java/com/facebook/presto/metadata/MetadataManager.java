@@ -853,11 +853,13 @@ public class MetadataManager
 
     @Override
     public MergeTableHandle beginMerge(Session session, TableHandle tableHandle) {
+        System.out.println("MERGEEEEE");
         return null;
     }
 
     @Override
     public Optional<ConnectorOutputMetadata> finishMerge(Session session, MergeTableHandle tableHandle, Collection<Slice> fragments, Collection<ComputedStatistics> computedStatistics) {
+        System.out.println("MERGEEEEE FINISHERRRRR");
         return Optional.empty();
     }
 
