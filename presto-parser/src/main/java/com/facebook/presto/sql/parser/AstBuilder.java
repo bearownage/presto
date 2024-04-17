@@ -416,12 +416,6 @@ class AstBuilder
                 (Query) visit(context.query()));
     }
 
-    /*
-    public Node visitMergeInto(SqlBaseParser.MergeIntoContext context) {
-
-    }
-    */
-
     @Override
     public Node visitDelete(SqlBaseParser.DeleteContext context)
     {
