@@ -379,7 +379,7 @@ public abstract class AbstractMockMetadata
     }
 
     @Override
-    public Optional<ConnectorOutputMetadata> finishMerge(Session session, MergeTableHandle tableHandle, Collection<Slice> fragments, Collection<ComputedStatistics> computedStatistictatistics)
+    public Optional<ConnectorOutputMetadata> finishMerge(Session session, MergeTableHandle tableHandle, Collection<Slice> fragments, Collection<ComputedStatistics> computedStatistictatistics)p
     {
         throw new UnsupportedOperationException();
     }
