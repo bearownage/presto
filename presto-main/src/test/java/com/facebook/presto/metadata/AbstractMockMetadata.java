@@ -373,6 +373,17 @@ public abstract class AbstractMockMetadata
         throw new UnsupportedOperationException();
     }
 
+    public MergeTableHandle beginMerge(Session session, TableHandle tableHandle)
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Optional<ConnectorOutputMetadata> finishMerge(Session session, MergeTableHandle tableHandle, Collection<Slice> fragments, Collection<ComputedStatistics> computedStatistictatistics)
+    {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     public void beginQuery(Session session, Set<ConnectorId> connectors)
     {
