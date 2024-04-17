@@ -30,7 +30,28 @@ import com.facebook.presto.spi.security.AccessControl;
 import com.facebook.presto.spi.security.AccessControlContext;
 import com.facebook.presto.spi.security.AllowAllAccessControl;
 import com.facebook.presto.spi.security.Identity;
-import com.facebook.presto.sql.tree.*;
+import com.facebook.presto.sql.tree.ExistsPredicate;
+import com.facebook.presto.sql.tree.Expression;
+import com.facebook.presto.sql.tree.FunctionCall;
+import com.facebook.presto.sql.tree.GroupingOperation;
+import com.facebook.presto.sql.tree.Identifier;
+import com.facebook.presto.sql.tree.InPredicate;
+import com.facebook.presto.sql.tree.Join;
+import com.facebook.presto.sql.tree.LambdaArgumentDeclaration;
+import com.facebook.presto.sql.tree.Merge;
+import com.facebook.presto.sql.tree.Node;
+import com.facebook.presto.sql.tree.NodeRef;
+import com.facebook.presto.sql.tree.Offset;
+import com.facebook.presto.sql.tree.OrderBy;
+import com.facebook.presto.sql.tree.Parameter;
+import com.facebook.presto.sql.tree.QuantifiedComparisonExpression;
+import com.facebook.presto.sql.tree.Query;
+import com.facebook.presto.sql.tree.QuerySpecification;
+import com.facebook.presto.sql.tree.Relation;
+import com.facebook.presto.sql.tree.SampledRelation;
+import com.facebook.presto.sql.tree.Statement;
+import com.facebook.presto.sql.tree.SubqueryExpression;
+import com.facebook.presto.sql.tree.Table;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -656,7 +677,10 @@ public class Analysis
         return createTableComment;
     }
 
-    public void setMerge(Merge merge) { this.merge = Optional.of(merge); }
+    public void setMerge(Merge merge)
+    {
+        this.merge = Optional.of(merge);
+    }
 
     public Optional<Merge> getMerge() {
         return merge;
