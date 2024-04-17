@@ -27,19 +27,15 @@ import com.facebook.presto.spi.MaterializedViewDefinition;
 import com.facebook.presto.spi.TableHandle;
 import com.facebook.presto.spi.analyzer.MetadataResolver;
 import com.facebook.presto.spi.analyzer.ViewDefinition;
-import com.facebook.presto.spi.connector.ConnectorOutputMetadata;
-import com.facebook.presto.spi.statistics.ComputedStatistics;
 import com.facebook.presto.transaction.TransactionManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.airlift.slice.Slice;
 
 import javax.inject.Inject;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -112,8 +108,6 @@ public class RemoteMetadataManager
                 ? ImmutableList.of()
                 : readValue(tableListJson, new TypeReference<List<QualifiedObjectName>>() {});
     }
-
-
 
     @Override
     public List<QualifiedObjectName> listViews(Session session, QualifiedTablePrefix prefix)

@@ -137,7 +137,8 @@ public abstract class ExecutionWriterTarget
         }
     }
 
-    public static class MergeHandle extends ExecutionWriterTarget
+    public static class MergeHandle
+            extends ExecutionWriterTarget
     {
         private final TableHandle handle;
         private final SchemaTableName schemaTableName;

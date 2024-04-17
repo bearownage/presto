@@ -54,7 +54,23 @@ import com.facebook.presto.sql.planner.plan.TableFinishNode;
 import com.facebook.presto.sql.planner.plan.TableWriterNode;
 import com.facebook.presto.sql.planner.plan.TableWriterNode.DeleteHandle;
 import com.facebook.presto.sql.planner.plan.UpdateNode;
-import com.facebook.presto.sql.tree.*;
+import com.facebook.presto.sql.tree.Analyze;
+import com.facebook.presto.sql.tree.Cast;
+import com.facebook.presto.sql.tree.CreateTableAsSelect;
+import com.facebook.presto.sql.tree.Delete;
+import com.facebook.presto.sql.tree.Explain;
+import com.facebook.presto.sql.tree.Expression;
+import com.facebook.presto.sql.tree.Identifier;
+import com.facebook.presto.sql.tree.Insert;
+import com.facebook.presto.sql.tree.LambdaArgumentDeclaration;
+import com.facebook.presto.sql.tree.Merge;
+import com.facebook.presto.sql.tree.NodeRef;
+import com.facebook.presto.sql.tree.NullLiteral;
+import com.facebook.presto.sql.tree.Parameter;
+import com.facebook.presto.sql.tree.Query;
+import com.facebook.presto.sql.tree.RefreshMaterializedView;
+import com.facebook.presto.sql.tree.Statement;
+import com.facebook.presto.sql.tree.Update;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -279,7 +295,8 @@ public class LogicalPlanner
         return buildInternalInsertPlan(tableHandle, columnHandles, viewAnalysis.getQuery(), analysis, target);
     }
 
-    private RelationPlan createMergePlan(Analysis analysis, Merge mergeStatement) {
+    private RelationPlan createMergePlan(Analysis analysis, Merge mergeStatement)
+    {
         Analysis.Merge mergeAnalysis = analysis.getMerge().get();
         System.out.print("MERGEE PLAAANNNN");
 
