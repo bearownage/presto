@@ -104,6 +104,7 @@ import com.facebook.presto.sql.tree.LikeClause;
 import com.facebook.presto.sql.tree.LikePredicate;
 import com.facebook.presto.sql.tree.LogicalBinaryExpression;
 import com.facebook.presto.sql.tree.LongLiteral;
+import com.facebook.presto.sql.tree.Merge;
 import com.facebook.presto.sql.tree.NaturalJoin;
 import com.facebook.presto.sql.tree.Node;
 import com.facebook.presto.sql.tree.NodeLocation;
@@ -413,6 +414,13 @@ class AstBuilder
         return new Insert(
                 getQualifiedName(context.qualifiedName()),
                 columnAliases,
+                (Query) visit(context.query()));
+    }
+
+    public Node visitMergeInto(SqlBaseParser.MergeIntoContext context)
+    {
+        return new Merge(
+                getQualifiedName(context.qualifiedName()),
                 (Query) visit(context.query()));
     }
 

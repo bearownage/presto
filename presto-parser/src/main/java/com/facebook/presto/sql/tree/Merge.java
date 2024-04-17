@@ -28,9 +28,10 @@ public class Merge
     private final QualifiedName target;
     private final Query query;
 
-    private Merge(Optional<NodeLocation> location, QualifiedName target, Query query)
+    public Merge(QualifiedName target, Query query)
     {
-        super(location);
+        // super(location);
+        super(Optional.empty());
         this.target = requireNonNull(target, "target is null");
         this.query = requireNonNull(query, "query is null");
     }
