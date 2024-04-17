@@ -682,7 +682,8 @@ public class Analysis
         this.merge = Optional.of(merge);
     }
 
-    public Optional<Merge> getMerge() {
+    public Optional<Merge> getMerge()
+    {
         return merge;
     }
 
