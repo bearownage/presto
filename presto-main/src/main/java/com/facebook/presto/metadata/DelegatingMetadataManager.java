@@ -420,7 +420,7 @@ public abstract class DelegatingMetadataManager
     }
 
     @Override
-    public Optional<ConnectorOutputMetadata> finishMerge(Session session, InsertTableHandle tableHandle, Collection<Slice> fragments, Collection<ComputedStatistics> computedStatistics) {
+    public Optional<ConnectorOutputMetadata> finishMerge(Session session, MergeTableHandle tableHandle, Collection<Slice> fragments, Collection<ComputedStatistics> computedStatistics) {
         return delegate.finishMerge(session, tableHandle, fragments, computedStatistics);
     }
 
