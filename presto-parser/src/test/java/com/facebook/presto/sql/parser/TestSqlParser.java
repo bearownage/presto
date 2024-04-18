@@ -1574,8 +1574,8 @@ public class TestSqlParser
         QualifiedName table = QualifiedName.of("a");
         Query query = simpleQuery(selectList(new AllColumns()), table(QualifiedName.of("t")));
 
-        assertStatement("MERGE INTO a USING SELECT * FROM t",
-                new Merge(table, query));
+        assertStatement("MERGE INTO a USING SELECT * FROM t ON true",
+                new Merge(table, query, Optional.of(new JoinOn(BooleanLiteral.TRUE_LITERAL))));
     }
 
     @Test

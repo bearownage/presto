@@ -27,13 +27,15 @@ public class Merge
 {
     private final QualifiedName target;
     private final Query query;
+    private final Optional<JoinOn> criteria;
 
-    public Merge(QualifiedName target, Query query)
+    public Merge(QualifiedName target, Query query, Optional<JoinOn> criteria)
     {
         // super(location);
         super(Optional.empty());
         this.target = requireNonNull(target, "target is null");
         this.query = requireNonNull(query, "query is null");
+        this.criteria = requireNonNull(criteria, "criteria is null");
     }
 
     public QualifiedName getTarget()
@@ -44,6 +46,11 @@ public class Merge
     public Query getQuery()
     {
         return query;
+    }
+
+    public Optional<JoinOn> getCriteria()
+    {
+        return criteria;
     }
 
     @Override
@@ -61,7 +68,7 @@ public class Merge
     @Override
     public int hashCode()
     {
-        return Objects.hash(target, query);
+        return Objects.hash(target, query, criteria);
     }
 
     @Override
@@ -75,7 +82,8 @@ public class Merge
         }
         Merge o = (Merge) obj;
         return Objects.equals(target, o.target) &&
-                Objects.equals(query, o.query);
+                Objects.equals(query, o.query) &&
+                Objects.equals(criteria, o.criteria);
     }
 
     @Override
@@ -84,6 +92,7 @@ public class Merge
         return toStringHelper(this)
                 .add("target", target)
                 .add("query", query)
+                .add("criteria", criteria)
                 .toString();
     }
 }

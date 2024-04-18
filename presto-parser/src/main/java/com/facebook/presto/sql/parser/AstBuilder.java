@@ -421,7 +421,8 @@ class AstBuilder
     {
         return new Merge(
                 getQualifiedName(context.qualifiedName()),
-                (Query) visit(context.query()));
+                (Query) visit(context.query()),
+                Optional.of(new JoinOn((Expression) visit(context.joinCriteria().booleanExpression()))));
     }
 
     @Override

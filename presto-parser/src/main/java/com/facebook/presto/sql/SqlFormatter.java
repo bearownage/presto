@@ -1286,6 +1286,9 @@ public final class SqlFormatter
                     .append(node.getTarget());
             builder.append(" USING ");
             process(node.getQuery(), indent);
+            JoinOn on = node.getCriteria().get();
+            builder.append(" ON ")
+                    .append(formatExpression(on.getExpression(), parameters));
             return null;
         }
 

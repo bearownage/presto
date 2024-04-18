@@ -37,8 +37,8 @@ import com.facebook.presto.sql.tree.GroupingOperation;
 import com.facebook.presto.sql.tree.Identifier;
 import com.facebook.presto.sql.tree.InPredicate;
 import com.facebook.presto.sql.tree.Join;
+import com.facebook.presto.sql.tree.JoinCriteria;
 import com.facebook.presto.sql.tree.LambdaArgumentDeclaration;
-import com.facebook.presto.sql.tree.Merge;
 import com.facebook.presto.sql.tree.Node;
 import com.facebook.presto.sql.tree.NodeRef;
 import com.facebook.presto.sql.tree.Offset;
@@ -1035,11 +1035,13 @@ public class Analysis
     {
         private final TableHandle target;
         private final Query query;
+        private final JoinCriteria joinCriteria;
 
-        public Merge(TableHandle target, Query query)
+        public Merge(TableHandle target, Query query, JoinCriteria joinCriteria)
         {
             this.target = requireNonNull(target, "target is null");
             this.query = requireNonNull(query, "query is null");
+            this.joinCriteria = requireNonNull(joinCriteria, "joinCriteria is null");
         }
 
         public Query getQuery()
@@ -1050,6 +1052,11 @@ public class Analysis
         public TableHandle getTarget()
         {
             return target;
+        }
+
+        public JoinCriteria getJoinCriteria()
+        {
+            return joinCriteria;
         }
     }
 
