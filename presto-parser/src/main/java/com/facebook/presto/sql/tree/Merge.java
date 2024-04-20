@@ -25,32 +25,32 @@ import static java.util.Objects.requireNonNull;
 public class Merge
         extends Statement
 {
-    private final QualifiedName target;
-    private final Query query;
-    private final Optional<JoinOn> criteria;
+    private final Table target;
+    private final Table source;
+    private final Expression condition;
 
-    public Merge(QualifiedName target, Query query, Optional<JoinOn> criteria)
+    public Merge(Table target, Table source, Expression condition)
     {
         // super(location);
         super(Optional.empty());
         this.target = requireNonNull(target, "target is null");
-        this.query = requireNonNull(query, "query is null");
-        this.criteria = requireNonNull(criteria, "criteria is null");
+        this.source = requireNonNull(source, "source is null");
+        this.condition = requireNonNull(condition, "condition is null");
     }
 
-    public QualifiedName getTarget()
+    public Table getTarget()
     {
         return target;
     }
 
-    public Query getQuery()
+    public Table getSource()
     {
-        return query;
+        return source;
     }
 
-    public Optional<JoinOn> getCriteria()
+    public Expression getCondition()
     {
-        return criteria;
+        return condition;
     }
 
     @Override
@@ -62,13 +62,16 @@ public class Merge
     @Override
     public List<Node> getChildren()
     {
-        return ImmutableList.of(query);
+        ImmutableList.Builder<Node> nodes = ImmutableList.builder();
+        nodes.add(source);
+        nodes.add(condition);
+        return nodes.build();
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash(target, query, criteria);
+        return Objects.hash(target, source, condition);
     }
 
     @Override
@@ -82,8 +85,8 @@ public class Merge
         }
         Merge o = (Merge) obj;
         return Objects.equals(target, o.target) &&
-                Objects.equals(query, o.query) &&
-                Objects.equals(criteria, o.criteria);
+                Objects.equals(source, o.source) &&
+                Objects.equals(condition, o.condition);
     }
 
     @Override
@@ -91,8 +94,8 @@ public class Merge
     {
         return toStringHelper(this)
                 .add("target", target)
-                .add("query", query)
-                .add("criteria", criteria)
+                .add("source", source)
+                .add("condition", condition)
                 .toString();
     }
 }

@@ -1283,12 +1283,11 @@ public final class SqlFormatter
         protected Void visitMerge(Merge node, Integer indent)
         {
             builder.append("MERGE INTO ")
-                    .append(node.getTarget());
-            builder.append(" USING ");
-            process(node.getQuery(), indent);
-            JoinOn on = node.getCriteria().get();
-            builder.append(" ON ")
-                    .append(formatExpression(on.getExpression(), parameters));
+                    .append(node.getTarget().getName())
+                    .append(" USING ")
+                    .append(node.getSource().getName())
+                    .append(" ON ")
+                    .append(formatExpression(node.getCondition(), parameters));
             return null;
         }
 
