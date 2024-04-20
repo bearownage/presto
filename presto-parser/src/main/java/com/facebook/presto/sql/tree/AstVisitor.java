@@ -664,7 +664,7 @@ public abstract class AstVisitor<R, C>
 
     protected R visitMerge(Merge node, C context)
     {
-        return visitMerge(node, context);
+        return visitStatement(node, context);
     }
 
     protected R visitCall(Call node, C context)

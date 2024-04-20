@@ -25,6 +25,7 @@ import com.facebook.presto.sql.tree.Analyze;
 import com.facebook.presto.sql.tree.DefaultTraversalVisitor;
 import com.facebook.presto.sql.tree.Delete;
 import com.facebook.presto.sql.tree.Insert;
+import com.facebook.presto.sql.tree.Merge;
 import com.facebook.presto.sql.tree.Statement;
 import com.facebook.presto.sql.tree.Table;
 
@@ -193,6 +194,7 @@ public class MetadataExtractor
         @Override
         protected Void visitInsert(Insert insert, MetadataExtractorContext context)
         {
+            System.out.println("Insert metadata");
             QualifiedObjectName tableName = createQualifiedObjectName(session, insert, insert.getTarget());
             if (tableName.getObjectName().isEmpty()) {
                 throw new SemanticException(MISSING_TABLE, insert, "Table name is empty");
@@ -204,6 +206,22 @@ public class MetadataExtractor
             // This could be either tableName, view, or MView
             context.addTable(tableName);
             return super.visitInsert(insert, context);
+        }
+
+        protected Void visitMerge(Merge merge, MetadataExtractorContext context)
+        {
+            System.out.println("Merge metadata");
+            QualifiedObjectName tableName = createQualifiedObjectName(session, merge, merge.getTarget());
+            if (tableName.getObjectName().isEmpty()) {
+                throw new SemanticException(MISSING_TABLE, merge, "Table name is empty");
+            }
+            if (tableName.getSchemaName().isEmpty()) {
+                throw new SemanticException(MISSING_SCHEMA, merge, "Schema name is empty");
+            }
+
+            // This could be either tableName, view, or MView
+            context.addTable(tableName);
+            return super.visitMerge(merge, context);
         }
 
         @Override

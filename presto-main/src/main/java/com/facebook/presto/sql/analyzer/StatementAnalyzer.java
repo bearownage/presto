@@ -382,12 +382,14 @@ class StatementAnalyzer
 
         protected Scope visitMerge(Merge node, Optional<Scope> scope)
         {
+            System.out.println("MEREAEJRJEAHRJEARHJEA");
             throw new SemanticException(NOT_SUPPORTED, node, "MERGE statement is not supported");
         }
 
         @Override
         protected Scope visitInsert(Insert insert, Optional<Scope> scope)
         {
+            System.out.println("INSERTTSSS");
             QualifiedObjectName targetTable = createQualifiedObjectName(session, insert, insert.getTarget());
 
             MetadataHandle metadataHandle = analysis.getMetadataHandle();
