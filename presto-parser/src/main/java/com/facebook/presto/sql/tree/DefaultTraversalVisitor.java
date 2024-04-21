@@ -453,7 +453,7 @@ public abstract class DefaultTraversalVisitor<R, C>
     protected R visitMerge(Merge node, C context)
     {
         //process(node.getQuery(), context);
-        System.out.println("Default Traversal Vistor Merge");
+        System.out.println("Default Traversal Visitor Merge");
         return null;
     }
 

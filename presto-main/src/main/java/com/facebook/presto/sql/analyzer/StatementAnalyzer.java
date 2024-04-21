@@ -380,10 +380,31 @@ class StatementAnalyzer
             throw new SemanticException(NOT_SUPPORTED, node, "USE statement is not supported");
         }
 
-        protected Scope visitMerge(Merge node, Optional<Scope> scope)
+        protected Scope visitMerge(Merge merge, Optional<Scope> scope)
         {
             System.out.println("MEREAEJRJEAHRJEARHJEA");
-            throw new SemanticException(NOT_SUPPORTED, node, "MERGE statement is not supported");
+            QualifiedObjectName targetTable = createQualifiedObjectName(session, merge, merge.getTarget());
+
+            MetadataHandle metadataHandle = analysis.getMetadataHandle();
+            if (getViewDefinition(session, metadataResolver, metadataHandle, targetTable).isPresent()) {
+                throw new SemanticException(NOT_SUPPORTED, merge, "Merge into views is not supported");
+            }
+
+            if (getMaterializedViewDefinition(session, metadataResolver, metadataHandle, targetTable).isPresent()) {
+                throw new SemanticException(NOT_SUPPORTED, merge, "Merging into materialized views is not supported");
+            }
+
+            // analyze the query that creates the data
+            Scope queryScope = process(merge.getQuery(), scope);
+
+            analysis.setUpdateType("MERGE");
+
+            TableColumnMetadata tableColumnsMetadata = getTableColumnsMetadata(session, metadataResolver, metadataHandle, targetTable);
+            // verify the insert destination columns match the query
+
+            analysis.addAccessControlCheckForTable(TABLE_INSERT, new AccessControlInfoForTable(accessControl, session.getIdentity(), session.getTransactionId(), session.getAccessControlContext(), targetTable));
+
+            return null;
         }
 
         @Override
