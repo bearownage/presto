@@ -1571,11 +1571,11 @@ public class TestSqlParser
     @Test
     public void testMergeInto()
     {
-        QualifiedName table = QualifiedName.of("a");
-        Query query = simpleQuery(selectList(new AllColumns()), table(QualifiedName.of("t")));
-
-        assertStatement("MERGE INTO a USING SELECT * FROM t ON true",
-                new Merge(table, query, Optional.of(new JoinOn(BooleanLiteral.TRUE_LITERAL))));
+        assertStatement("MERGE INTO t USING s ON a = b",
+                new Merge(table(QualifiedName.of("t")), table(QualifiedName.of("s")),
+                new ComparisonExpression(ComparisonExpression.Operator.EQUAL,
+                        new Identifier("a"),
+                        new Identifier("b"))));
     }
 
     @Test

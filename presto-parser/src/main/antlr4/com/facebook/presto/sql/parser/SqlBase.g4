@@ -48,7 +48,7 @@ statement
          (WITH properties)?                                            #createTable
     | DROP TABLE (IF EXISTS)? qualifiedName                            #dropTable
     | INSERT INTO qualifiedName columnAliases? query                   #insertInto
-    | MERGE INTO qualifiedName (USING query)? joinCriteria             #mergeInto
+    | MERGE INTO qualifiedName USING qualifiedName ON booleanExpression #mergeInto
     | DELETE FROM qualifiedName (WHERE booleanExpression)?             #delete
     | TRUNCATE TABLE qualifiedName                                     #truncateTable
     | ALTER TABLE (IF EXISTS)? from=qualifiedName
