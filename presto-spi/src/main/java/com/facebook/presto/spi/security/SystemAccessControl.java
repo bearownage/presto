@@ -39,6 +39,7 @@ import static com.facebook.presto.spi.security.AccessDeniedException.denyDropTab
 import static com.facebook.presto.spi.security.AccessDeniedException.denyDropView;
 import static com.facebook.presto.spi.security.AccessDeniedException.denyGrantTablePrivilege;
 import static com.facebook.presto.spi.security.AccessDeniedException.denyInsertTable;
+import static com.facebook.presto.spi.security.AccessDeniedException.denyMergeTable;
 import static com.facebook.presto.spi.security.AccessDeniedException.denyRenameColumn;
 import static com.facebook.presto.spi.security.AccessDeniedException.denyRenameSchema;
 import static com.facebook.presto.spi.security.AccessDeniedException.denyRenameTable;
@@ -247,6 +248,16 @@ public interface SystemAccessControl
     default void checkCanInsertIntoTable(Identity identity, AccessControlContext context, CatalogSchemaTableName table)
     {
         denyInsertTable(table.toString());
+    }
+
+    /**
+     * Check if identity is allowed to insert into the specified table in a catalog.
+     *
+     * @throws com.facebook.presto.spi.security.AccessDeniedException if not allowed
+     */
+    default void checkCanMergeIntoTable(Identity identity, AccessControlContext context, CatalogSchemaTableName table)
+    {
+        denyMergeTable(table.toString());
     }
 
     /**

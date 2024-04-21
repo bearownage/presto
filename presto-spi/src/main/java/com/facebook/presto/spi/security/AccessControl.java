@@ -158,6 +158,13 @@ public interface AccessControl
     void checkCanInsertIntoTable(TransactionId transactionId, Identity identity, AccessControlContext context, QualifiedObjectName tableName);
 
     /**
+     * Check if identity is allowed to merge into the specified table.
+     *
+     * @throws com.facebook.presto.spi.security.AccessDeniedException if not allowed
+     */
+    void checkCanMergeIntoTable(TransactionId transactionId, Identity identity, AccessControlContext context, QualifiedObjectName tableName);
+
+    /**
      * Check if identity is allowed to delete from the specified table.
      *
      * @throws com.facebook.presto.spi.security.AccessDeniedException if not allowed

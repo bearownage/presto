@@ -98,6 +98,7 @@ import static com.facebook.presto.sql.planner.PlannerUtils.newVariable;
 import static com.facebook.presto.sql.planner.TranslateExpressionsUtil.toRowExpression;
 import static com.facebook.presto.sql.planner.plan.TableWriterNode.CreateName;
 import static com.facebook.presto.sql.planner.plan.TableWriterNode.InsertReference;
+import static com.facebook.presto.sql.planner.plan.TableWriterNode.MergeReference;
 import static com.facebook.presto.sql.planner.plan.TableWriterNode.RefreshMaterializedViewReference;
 import static com.facebook.presto.sql.planner.plan.TableWriterNode.UpdateTarget;
 import static com.facebook.presto.sql.planner.plan.TableWriterNode.WriterTarget;
@@ -298,6 +299,11 @@ public class LogicalPlanner
     private RelationPlan createMergePlan(Analysis analysis, Merge mergeStatement)
     {
         Analysis.Merge mergeAnalysis = analysis.getMerge().get();
+
+        TableHandle tableHandle = mergeAnalysis.getTarget();
+        WriterTarget target = new MergeReference(tableHandle, metadata.getTableMetadata(session, tableHandle).getTable());
+        //return buildInternalInsertPlan(tableHandle, columnHandles, insertStatement.getQuery(), analysis, target);
+
         System.out.print("MERGEE PLAAANNNN");
 
         return null;

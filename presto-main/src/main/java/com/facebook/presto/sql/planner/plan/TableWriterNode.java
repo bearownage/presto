@@ -362,6 +362,42 @@ public class TableWriterNode
         }
     }
 
+    public static class MergeReference
+            extends WriterTarget
+    {
+        private final TableHandle handle;
+        private final SchemaTableName schemaTableName;
+
+        public MergeReference(TableHandle handle, SchemaTableName schemaTableName)
+        {
+            this.handle = requireNonNull(handle, "handle is null");
+            this.schemaTableName = requireNonNull(schemaTableName, "schemaTableName is null");
+        }
+
+        public TableHandle getHandle()
+        {
+            return handle;
+        }
+
+        @Override
+        public ConnectorId getConnectorId()
+        {
+            return handle.getConnectorId();
+        }
+
+        @Override
+        public SchemaTableName getSchemaTableName()
+        {
+            return schemaTableName;
+        }
+
+        @Override
+        public String toString()
+        {
+            return handle.toString();
+        }
+    }
+
     public static class DeleteHandle
             extends WriterTarget
     {
