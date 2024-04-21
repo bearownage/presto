@@ -220,7 +220,7 @@ public interface ConnectorAccessControl
     }
 
     /**
-     * Check if identity is allowed to insert into the specified table in this catalog.
+     * Check if identity is allowed to merge into the specified table in this catalog.
      *
      * @throws com.facebook.presto.spi.security.AccessDeniedException if not allowed
      */

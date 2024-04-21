@@ -68,6 +68,7 @@ import static com.facebook.presto.testing.TestingAccessControlManager.TestingPri
 import static com.facebook.presto.testing.TestingAccessControlManager.TestingPrivilegeType.DROP_TABLE;
 import static com.facebook.presto.testing.TestingAccessControlManager.TestingPrivilegeType.DROP_VIEW;
 import static com.facebook.presto.testing.TestingAccessControlManager.TestingPrivilegeType.INSERT_TABLE;
+import static com.facebook.presto.testing.TestingAccessControlManager.TestingPrivilegeType.MERGE_TABLE;
 import static com.facebook.presto.testing.TestingAccessControlManager.TestingPrivilegeType.RENAME_COLUMN;
 import static com.facebook.presto.testing.TestingAccessControlManager.TestingPrivilegeType.RENAME_SCHEMA;
 import static com.facebook.presto.testing.TestingAccessControlManager.TestingPrivilegeType.RENAME_TABLE;
@@ -76,7 +77,6 @@ import static com.facebook.presto.testing.TestingAccessControlManager.TestingPri
 import static com.facebook.presto.testing.TestingAccessControlManager.TestingPrivilegeType.SET_USER;
 import static com.facebook.presto.testing.TestingAccessControlManager.TestingPrivilegeType.TRUNCATE_TABLE;
 import static com.facebook.presto.testing.TestingAccessControlManager.TestingPrivilegeType.UPDATE_TABLE;
-import static com.facebook.presto.testing.TestingAccessControlManager.TestingPrivilegeType.MERGE_TABLE;
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.requireNonNull;

@@ -205,7 +205,10 @@ import static com.facebook.presto.spi.StandardErrorCode.INVALID_FUNCTION_ARGUMEN
 import static com.facebook.presto.spi.StandardErrorCode.NOT_FOUND;
 import static com.facebook.presto.spi.StandardWarningCode.PERFORMANCE_WARNING;
 import static com.facebook.presto.spi.StandardWarningCode.REDUNDANT_ORDER_BY;
-import static com.facebook.presto.spi.analyzer.AccessControlRole.*;
+import static com.facebook.presto.spi.analyzer.AccessControlRole.TABLE_CREATE;
+import static com.facebook.presto.spi.analyzer.AccessControlRole.TABLE_DELETE;
+import static com.facebook.presto.spi.analyzer.AccessControlRole.TABLE_INSERT;
+import static com.facebook.presto.spi.analyzer.AccessControlRole.TABLE_MERGE;
 import static com.facebook.presto.spi.connector.ConnectorTableVersion.VersionType;
 import static com.facebook.presto.spi.function.FunctionKind.AGGREGATE;
 import static com.facebook.presto.spi.function.FunctionKind.WINDOW;
@@ -2095,7 +2098,7 @@ class StatementAnalyzer
                 if (!targetType.equals(expressionType)) {
                     analysis.addCoercion(expression, targetType, functionAndTypeResolver.isTypeOnlyCoercion(expressionType, targetType));
                 }
-                analysis.recordSubqueries(update, analyses.get(index)   );
+                analysis.recordSubqueries(update, analyses.get(index));
             }
 
             return createAndAssignScope(update, scope, Field.newUnqualified(update.getLocation(), "rows", BIGINT));

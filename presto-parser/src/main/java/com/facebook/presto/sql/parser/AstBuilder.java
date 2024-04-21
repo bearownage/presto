@@ -428,7 +428,6 @@ class AstBuilder
                 (Expression) visit(context.booleanExpression()));
     }
 
-
     @Override
     public Node visitDelete(SqlBaseParser.DeleteContext context)
     {
