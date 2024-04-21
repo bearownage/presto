@@ -384,6 +384,7 @@ class StatementAnalyzer
         protected Scope visitMerge(Merge merge, Optional<Scope> scope)
         {
             System.out.println("MEREAEJRJEAHRJEARHJEA");
+            Table source = merge.getSource();
             QualifiedObjectName targetTable = createQualifiedObjectName(session, merge, merge.getTarget().getName());
 
             MetadataHandle metadataHandle = analysis.getMetadataHandle();

@@ -878,15 +878,20 @@ public class MetadataManager
     @Override
     public MergeTableHandle beginMerge(Session session, TableHandle tableHandle)
     {
-        System.out.println("MERGEEEEE");
-        return null;
+        ConnectorId connectorId = tableHandle.getConnectorId();
+        CatalogMetadata catalogMetadata = getCatalogMetadataForWrite(session, connectorId);
+        ConnectorMetadata metadata = catalogMetadata.getMetadata();
+        ConnectorTransactionHandle transactionHandle = catalogMetadata.getTransactionHandleFor(connectorId);
+        ConnectorMergeTableHandle handle = metadata.beginMerge(session.toConnectorSession(connectorId), tableHandle.getConnectorHandle());
+        return new MergeTableHandle(tableHandle.getConnectorId(), transactionHandle, handle);
     }
 
     @Override
     public Optional<ConnectorOutputMetadata> finishMerge(Session session, MergeTableHandle tableHandle, Collection<Slice> fragments, Collection<ComputedStatistics> computedStatistics)
     {
-        System.out.println("MERGEEEEE FINISHERRRRR");
-        return Optional.empty();
+        ConnectorId connectorId = tableHandle.getConnectorId();
+        ConnectorMetadata metadata = getMetadata(session, connectorId);
+        return metadata.finishMerge(session.toConnectorSession(connectorId), tableHandle.getConnectorHandle(), fragments, computedStatistics);
     }
 
     @Override
