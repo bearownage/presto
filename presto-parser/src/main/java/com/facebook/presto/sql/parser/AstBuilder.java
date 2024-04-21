@@ -194,6 +194,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -422,9 +423,9 @@ class AstBuilder
     {
         return new Merge(
                 getLocation(context),
-                new Table(getLocation(context), getQualifiedName(context.qualifiedName())),
-                new Table(getLocation(context), getQualifiedName(context.qualifiedName())),
-                visit(context.booleanExpression(), Expression.class));
+                new Table(getLocation(context), getQualifiedName(context.qualifiedName(0))),
+                new Table(getLocation(context), getQualifiedName(context.qualifiedName(1))),
+                (Expression) visit(context.booleanExpression()));
     }
 
 
