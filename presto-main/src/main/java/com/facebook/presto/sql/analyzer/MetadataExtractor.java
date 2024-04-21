@@ -211,7 +211,7 @@ public class MetadataExtractor
         protected Void visitMerge(Merge merge, MetadataExtractorContext context)
         {
             System.out.println("Merge metadata");
-            QualifiedObjectName tableName = createQualifiedObjectName(session, merge, merge.getTarget());
+            QualifiedObjectName tableName = createQualifiedObjectName(session, merge, merge.getTarget().getName());
             if (tableName.getObjectName().isEmpty()) {
                 throw new SemanticException(MISSING_TABLE, merge, "Table name is empty");
             }

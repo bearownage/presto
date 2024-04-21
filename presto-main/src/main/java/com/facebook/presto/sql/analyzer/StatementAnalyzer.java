@@ -205,9 +205,7 @@ import static com.facebook.presto.spi.StandardErrorCode.INVALID_FUNCTION_ARGUMEN
 import static com.facebook.presto.spi.StandardErrorCode.NOT_FOUND;
 import static com.facebook.presto.spi.StandardWarningCode.PERFORMANCE_WARNING;
 import static com.facebook.presto.spi.StandardWarningCode.REDUNDANT_ORDER_BY;
-import static com.facebook.presto.spi.analyzer.AccessControlRole.TABLE_CREATE;
-import static com.facebook.presto.spi.analyzer.AccessControlRole.TABLE_DELETE;
-import static com.facebook.presto.spi.analyzer.AccessControlRole.TABLE_INSERT;
+import static com.facebook.presto.spi.analyzer.AccessControlRole.*;
 import static com.facebook.presto.spi.connector.ConnectorTableVersion.VersionType;
 import static com.facebook.presto.spi.function.FunctionKind.AGGREGATE;
 import static com.facebook.presto.spi.function.FunctionKind.WINDOW;
@@ -383,7 +381,7 @@ class StatementAnalyzer
         protected Scope visitMerge(Merge merge, Optional<Scope> scope)
         {
             System.out.println("MEREAEJRJEAHRJEARHJEA");
-            QualifiedObjectName targetTable = createQualifiedObjectName(session, merge, merge.getTarget());
+            QualifiedObjectName targetTable = createQualifiedObjectName(session, merge, merge.getTarget().getName());
 
             MetadataHandle metadataHandle = analysis.getMetadataHandle();
             if (getViewDefinition(session, metadataResolver, metadataHandle, targetTable).isPresent()) {
@@ -394,15 +392,17 @@ class StatementAnalyzer
                 throw new SemanticException(NOT_SUPPORTED, merge, "Merging into materialized views is not supported");
             }
 
+            TableColumnMetadata tableMetadata = getTableColumnsMetadata(session, metadataResolver, metadataHandle, targetTable);
+            List<ColumnMetadata> allColumns = tableMetadata.getColumnsMetadata();
+            Map<String, ColumnMetadata> columns = allColumns.stream()
+                    .collect(toImmutableMap(ColumnMetadata::getName, Function.identity()));
+
             // analyze the query that creates the data
-            Scope queryScope = process(merge.getQuery(), scope);
-
+            Scope queryScope = process(merge, scope);
             analysis.setUpdateType("MERGE");
-
             TableColumnMetadata tableColumnsMetadata = getTableColumnsMetadata(session, metadataResolver, metadataHandle, targetTable);
             // verify the insert destination columns match the query
-
-            analysis.addAccessControlCheckForTable(TABLE_INSERT, new AccessControlInfoForTable(accessControl, session.getIdentity(), session.getTransactionId(), session.getAccessControlContext(), targetTable));
+            analysis.addAccessControlCheckForTable(TABLE_MERGE, new AccessControlInfoForTable(accessControl, session.getIdentity(), session.getTransactionId(), session.getAccessControlContext(), targetTable));
 
             return null;
         }
@@ -2095,7 +2095,7 @@ class StatementAnalyzer
                 if (!targetType.equals(expressionType)) {
                     analysis.addCoercion(expression, targetType, functionAndTypeResolver.isTypeOnlyCoercion(expressionType, targetType));
                 }
-                analysis.recordSubqueries(update, analyses.get(index));
+                analysis.recordSubqueries(update, analyses.get(index)   );
             }
 
             return createAndAssignScope(update, scope, Field.newUnqualified(update.getLocation(), "rows", BIGINT));
