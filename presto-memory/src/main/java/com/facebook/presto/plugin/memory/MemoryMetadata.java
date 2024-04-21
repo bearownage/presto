@@ -17,6 +17,7 @@ import com.facebook.presto.common.predicate.TupleDomain;
 import com.facebook.presto.spi.ColumnHandle;
 import com.facebook.presto.spi.ColumnMetadata;
 import com.facebook.presto.spi.ConnectorInsertTableHandle;
+import com.facebook.presto.spi.ConnectorMergeTableHandle;
 import com.facebook.presto.spi.ConnectorNewTableLayout;
 import com.facebook.presto.spi.ConnectorOutputTableHandle;
 import com.facebook.presto.spi.ConnectorSession;
@@ -271,6 +272,23 @@ public class MemoryMetadata
         MemoryInsertTableHandle memoryInsertHandle = (MemoryInsertTableHandle) insertHandle;
 
         updateRowsOnHosts(memoryInsertHandle.getTable(), fragments);
+        return Optional.empty();
+    }
+
+    @Override
+    public synchronized MemoryMergeTableHandle beginMerge(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        MemoryTableHandle memoryTableHandle = (MemoryTableHandle) tableHandle;
+        return new MemoryMergeTableHandle(memoryTableHandle, ImmutableSet.copyOf(tableIds.values()));
+    }
+
+    @Override
+    public synchronized Optional<ConnectorOutputMetadata> finishMerge(ConnectorSession session, ConnectorMergeTableHandle mergeHandle, Collection<Slice> fragments, Collection<ComputedStatistics> computedStatistics)
+    {
+        requireNonNull(mergeHandle, "insertHandle is null");
+        MemoryMergeTableHandle memoryMergeHandle = (MemoryMergeTableHandle) mergeHandle;
+
+        updateRowsOnHosts(memoryMergeHandle.getTable(), fragments);
         return Optional.empty();
     }
 

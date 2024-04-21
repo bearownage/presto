@@ -542,6 +542,22 @@ public interface ConnectorMetadata
     }
 
     /**
+     * Begin merge query
+     */
+    default ConnectorMergeTableHandle beginMerge(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        throw new PrestoException(NOT_SUPPORTED, "This connector does not support merge");
+    }
+
+    /**
+     * Finish merge query
+     */
+    default Optional<ConnectorOutputMetadata> finishMerge(ConnectorSession session, ConnectorMergeTableHandle mergeHandle, Collection<Slice> fragments, Collection<ComputedStatistics> computedStatistics)
+    {
+        throw new PrestoException(GENERIC_INTERNAL_ERROR, "ConnectorMetadata beginMerge() is implemented without finishMerge()");
+    }
+
+    /**
      * Get the column handle that will generate row IDs for the delete operation.
      * These IDs will be passed to the {@code deleteRows()} method of the
      * {@link com.facebook.presto.spi.UpdatablePageSource} that created them.
