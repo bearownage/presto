@@ -104,6 +104,7 @@ import com.facebook.presto.sql.tree.LikeClause;
 import com.facebook.presto.sql.tree.LikePredicate;
 import com.facebook.presto.sql.tree.LogicalBinaryExpression;
 import com.facebook.presto.sql.tree.LongLiteral;
+import com.facebook.presto.sql.tree.Merge;
 import com.facebook.presto.sql.tree.NaturalJoin;
 import com.facebook.presto.sql.tree.Node;
 import com.facebook.presto.sql.tree.NodeLocation;
@@ -193,6 +194,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -416,17 +418,16 @@ class AstBuilder
                 (Query) visit(context.query()));
     }
 
-    /*
     @Override
     public Node visitMergeInto(SqlBaseParser.MergeIntoContext context)
     {
         return new Merge(
                 getLocation(context),
-                new Table(getLocation(context), getQualifiedName(context.qualifiedName())),
-                new Table(getLocation(context), getQualifiedName(context.qualifiedName())),
-                visit(context.booleanExpression(), Expression.class));
+                new Table(getLocation(context), getQualifiedName(context.qualifiedName(0))),
+                new Table(getLocation(context), getQualifiedName(context.qualifiedName(1))),
+                (Expression) visit(context.booleanExpression()));
     }
-     */
+
 
     @Override
     public Node visitDelete(SqlBaseParser.DeleteContext context)

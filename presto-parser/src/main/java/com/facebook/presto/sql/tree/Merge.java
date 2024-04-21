@@ -31,8 +31,17 @@ public class Merge
 
     public Merge(Table target, Table source, Expression condition)
     {
-        // super(location);
-        super(Optional.empty());
+        this(Optional.empty(), target, source, condition);
+    }
+
+    public Merge(NodeLocation location, Table target, Table source, Expression condition)
+    {
+        this(Optional.of(location), target, source, condition);
+    }
+
+    public Merge(Optional<NodeLocation> location, Table target, Table source, Expression condition)
+    {
+        super(location);
         this.target = requireNonNull(target, "target is null");
         this.source = requireNonNull(source, "source is null");
         this.condition = requireNonNull(condition, "condition is null");
