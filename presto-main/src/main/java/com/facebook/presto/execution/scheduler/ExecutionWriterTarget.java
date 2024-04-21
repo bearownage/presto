@@ -15,6 +15,7 @@
 package com.facebook.presto.execution.scheduler;
 
 import com.facebook.presto.metadata.InsertTableHandle;
+import com.facebook.presto.metadata.MergeTableHandle;
 import com.facebook.presto.metadata.OutputTableHandle;
 import com.facebook.presto.spi.SchemaTableName;
 import com.facebook.presto.spi.TableHandle;
@@ -140,12 +141,12 @@ public abstract class ExecutionWriterTarget
     public static class MergeHandle
             extends ExecutionWriterTarget
     {
-        private final TableHandle handle;
+        private final MergeTableHandle handle;
         private final SchemaTableName schemaTableName;
 
         @JsonCreator
         public MergeHandle(
-                @JsonProperty("handle") TableHandle handle,
+                @JsonProperty("handle") MergeTableHandle handle,
                 @JsonProperty("schemaTableName") SchemaTableName schemaTableName)
         {
             this.handle = requireNonNull(handle, "handle is null");
@@ -153,7 +154,7 @@ public abstract class ExecutionWriterTarget
         }
 
         @JsonProperty
-        public TableHandle getHandle()
+        public MergeTableHandle getHandle()
         {
             return handle;
         }
