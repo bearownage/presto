@@ -15,6 +15,7 @@ package com.facebook.presto.testing;
 
 import com.facebook.presto.common.Page;
 import com.facebook.presto.spi.ConnectorInsertTableHandle;
+import com.facebook.presto.spi.ConnectorMergeTableHandle;
 import com.facebook.presto.spi.ConnectorOutputTableHandle;
 import com.facebook.presto.spi.ConnectorPageSink;
 import com.facebook.presto.spi.ConnectorSession;
@@ -40,6 +41,12 @@ public class TestingPageSinkProvider
 
     @Override
     public ConnectorPageSink createPageSink(ConnectorTransactionHandle transactionHandle, ConnectorSession session, ConnectorInsertTableHandle insertTableHandle, PageSinkContext pageSinkContext)
+    {
+        return new TestingPageSink();
+    }
+
+    @Override
+    public ConnectorPageSink createPageSink(ConnectorTransactionHandle transactionHandle, ConnectorSession session, ConnectorMergeTableHandle mergeTableHandle, PageSinkContext pageSinkContext)
     {
         return new TestingPageSink();
     }

@@ -68,7 +68,6 @@ import com.facebook.presto.sql.tree.NodeRef;
 import com.facebook.presto.sql.tree.NullLiteral;
 import com.facebook.presto.sql.tree.Parameter;
 import com.facebook.presto.sql.tree.Query;
-import com.facebook.presto.sql.tree.QueryBody;
 import com.facebook.presto.sql.tree.RefreshMaterializedView;
 import com.facebook.presto.sql.tree.Statement;
 import com.facebook.presto.sql.tree.Table;
