@@ -303,7 +303,7 @@ public class LogicalPlanner
 
         TableHandle tableHandle = mergeAnalysis.getTarget();
         WriterTarget target = new MergeReference(tableHandle, metadata.getTableMetadata(session, tableHandle).getTable());
-        return buildInternalMergePlan(tableHandle, null, mergeStatement.getSource(), analysis, target);
+        return buildInternalMergePlan(tableHandle, mergeAnalysis.getColumns(), mergeStatement.getSource(), analysis, target);
     }
 
     private RelationPlan buildInternalMergePlan(
@@ -325,7 +325,56 @@ public class LogicalPlanner
         SqlPlannerContext context = new SqlPlannerContext(0);
         RelationPlan plan = createRelationPlan(analysis, source, context);
 
-        return null;
+        Map<String, ColumnHandle> columns = metadata.getColumnHandles(session, tableHandle);
+        Assignments.Builder assignments = Assignments.builder();
+        for (ColumnMetadata column : tableMetadata.getColumns()) {
+            if (column.isHidden()) {
+                continue;
+            }
+            VariableReferenceExpression output = variableAllocator.newVariable(getSourceLocation(source), column.getName(), column.getType());
+            int index = columnHandles.indexOf(columns.get(column.getName()));
+            if (index < 0) {
+                Expression cast = new Cast(new NullLiteral(), column.getType().getTypeSignature().toString());
+                assignments.put(output, rowExpression(cast, context, analysis));
+            }
+            else {
+                VariableReferenceExpression input = plan.getVariable(index);
+                Type tableType = column.getType();
+                Type queryType = input.getType();
+
+                if (queryType.equals(tableType) || metadata.getFunctionAndTypeManager().isTypeOnlyCoercion(queryType, tableType)) {
+                    assignments.put(output, input);
+                }
+                else {
+                    Expression cast = new Cast(createSymbolReference(input), tableType.getTypeSignature().toString());
+                    assignments.put(output, rowExpression(cast, context, analysis));
+                }
+            }
+        }
+        ProjectNode projectNode = new ProjectNode(idAllocator.getNextId(), plan.getRoot(), assignments.build());
+
+        List<Field> fields = visibleTableColumns.stream()
+                .map(column -> Field.newUnqualified(source.getLocation(), column.getName(), column.getType()))
+                .collect(toImmutableList());
+        Scope scope = Scope.builder().withRelationType(RelationId.anonymous(), new RelationType(fields)).build();
+
+        plan = new RelationPlan(projectNode, scope, projectNode.getOutputVariables());
+
+        Optional<NewTableLayout> newTableLayout = metadata.getInsertLayout(session, tableHandle);
+        Optional<NewTableLayout> preferredShuffleLayout = metadata.getPreferredShuffleLayoutForInsert(session, tableHandle);
+
+        String catalogName = tableHandle.getConnectorId().getCatalogName();
+        TableStatisticsMetadata statisticsMetadata = metadata.getStatisticsCollectionMetadataForWrite(session, catalogName, tableMetadata.getMetadata());
+
+        return createTableWriterPlan(
+                analysis,
+                plan,
+                target,
+                visibleTableColumnNames,
+                visibleTableColumns,
+                newTableLayout,
+                preferredShuffleLayout,
+                statisticsMetadata);
     }
 
     private RelationPlan createInsertPlan(Analysis analysis, Insert insertStatement)

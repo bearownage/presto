@@ -882,6 +882,8 @@ public class MetadataManager
         CatalogMetadata catalogMetadata = getCatalogMetadataForWrite(session, connectorId);
         ConnectorMetadata metadata = catalogMetadata.getMetadata();
         ConnectorTransactionHandle transactionHandle = catalogMetadata.getTransactionHandleFor(connectorId);
+//        ConnectorInsertTableHandle handle = metadata.beginInsert(session.toConnectorSession(connectorId), tableHandle.getConnectorHandle());
+//        return null;
         ConnectorMergeTableHandle handle = metadata.beginMerge(session.toConnectorSession(connectorId), tableHandle.getConnectorHandle());
         return new MergeTableHandle(tableHandle.getConnectorId(), transactionHandle, handle);
     }
@@ -967,7 +969,7 @@ public class MetadataManager
         metadata.finishUpdate(session.toConnectorSession(connectorId), tableHandle.getConnectorHandle(), fragments);
     }
 
-    public MergeTableHandle beginMerge(Session session, MergeTableHandle tableHandle, List<ColumnHandle> updatedColumns)
+/*    public MergeTableHandle beginMerge(Session session, MergeTableHandle tableHandle, List<ColumnHandle> updatedColumns)
     {
         ConnectorId connectorId = tableHandle.getConnectorId();
         ConnectorMetadata metadata = getMetadataForWrite(session, connectorId);
@@ -980,7 +982,7 @@ public class MetadataManager
         ConnectorId connectorId = tableHandle.getConnectorId();
         ConnectorMetadata metadata = getMetadata(session, connectorId);
         return metadata.finishMerge(session.toConnectorSession(connectorId), tableHandle.getConnectorHandle(), fragments);
-    }
+    }*/
 
     @Override
     public Optional<ConnectorId> getCatalogHandle(Session session, String catalogName)
