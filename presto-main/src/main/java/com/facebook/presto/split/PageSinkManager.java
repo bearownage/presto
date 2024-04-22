@@ -15,6 +15,7 @@ package com.facebook.presto.split;
 
 import com.facebook.presto.Session;
 import com.facebook.presto.metadata.InsertTableHandle;
+import com.facebook.presto.metadata.MergeTableHandle;
 import com.facebook.presto.metadata.OutputTableHandle;
 import com.facebook.presto.spi.ConnectorId;
 import com.facebook.presto.spi.ConnectorPageSink;
@@ -56,6 +57,13 @@ public class PageSinkManager
 
     @Override
     public ConnectorPageSink createPageSink(Session session, InsertTableHandle tableHandle, PageSinkContext pageSinkContext)
+    {
+        // assumes connectorId and catalog are the same
+        ConnectorSession connectorSession = session.toConnectorSession(tableHandle.getConnectorId());
+        return providerFor(tableHandle.getConnectorId()).createPageSink(tableHandle.getTransactionHandle(), connectorSession, tableHandle.getConnectorHandle(), pageSinkContext);
+    }
+
+    public ConnectorPageSink createPageSink(Session session, MergeTableHandle tableHandle, PageSinkContext pageSinkContext)
     {
         // assumes connectorId and catalog are the same
         ConnectorSession connectorSession = session.toConnectorSession(tableHandle.getConnectorId());

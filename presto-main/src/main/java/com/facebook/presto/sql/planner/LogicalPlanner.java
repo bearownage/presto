@@ -68,6 +68,7 @@ import com.facebook.presto.sql.tree.NodeRef;
 import com.facebook.presto.sql.tree.NullLiteral;
 import com.facebook.presto.sql.tree.Parameter;
 import com.facebook.presto.sql.tree.Query;
+import com.facebook.presto.sql.tree.QueryBody;
 import com.facebook.presto.sql.tree.RefreshMaterializedView;
 import com.facebook.presto.sql.tree.Statement;
 import com.facebook.presto.sql.tree.Table;
@@ -331,7 +332,7 @@ public class LogicalPlanner
             if (column.isHidden()) {
                 continue;
             }
-            VariableReferenceExpression output = variableAllocator.newVariable(getSourceLocation(source), column.getName(), column.getType());
+            VariableReferenceExpression output = variableAllocator.newVariable(column.getName(), column.getType());
             int index = columnHandles.indexOf(columns.get(column.getName()));
             if (index < 0) {
                 Expression cast = new Cast(new NullLiteral(), column.getType().getTypeSignature().toString());
@@ -354,7 +355,7 @@ public class LogicalPlanner
         ProjectNode projectNode = new ProjectNode(idAllocator.getNextId(), plan.getRoot(), assignments.build());
 
         List<Field> fields = visibleTableColumns.stream()
-                .map(column -> Field.newUnqualified(source.getLocation(), column.getName(), column.getType()))
+                .map(column -> Field.newUnqualified(Optional.empty(), column.getName(), column.getType()))
                 .collect(toImmutableList());
         Scope scope = Scope.builder().withRelationType(RelationId.anonymous(), new RelationType(fields)).build();
 

@@ -15,6 +15,7 @@ package com.facebook.presto.plugin.memory;
 
 import com.facebook.presto.common.Page;
 import com.facebook.presto.spi.ConnectorInsertTableHandle;
+import com.facebook.presto.spi.ConnectorMergeTableHandle;
 import com.facebook.presto.spi.ConnectorOutputTableHandle;
 import com.facebook.presto.spi.ConnectorPageSink;
 import com.facebook.presto.spi.ConnectorSession;
@@ -82,6 +83,21 @@ public class MemoryPageSinkProvider
         checkState(memoryInsertTableHandle.getActiveTableIds().contains(tableId));
 
         pagesStore.cleanUp(memoryInsertTableHandle.getActiveTableIds());
+        pagesStore.initialize(tableId);
+        return new MemoryPageSink(pagesStore, currentHostAddress, tableId);
+    }
+
+    @Override
+    public ConnectorPageSink createPageSink(ConnectorTransactionHandle transactionHandle, ConnectorSession session, ConnectorMergeTableHandle memoryTableHandle, PageSinkContext pageSinkContext)
+    {
+        checkArgument(!pageSinkContext.isCommitRequired(), "Memory connector does not support page sink commit");
+
+        MemoryMergeTableHandle memoryMergeTableHandle = (MemoryMergeTableHandle) memoryTableHandle;
+        MemoryTableHandle tableHandle = memoryMergeTableHandle.getTable();
+        long tableId = tableHandle.getTableId();
+        checkState(memoryMergeTableHandle.getActiveTableIds().contains(tableId));
+
+        pagesStore.cleanUp(memoryMergeTableHandle.getActiveTableIds());
         pagesStore.initialize(tableId);
         return new MemoryPageSink(pagesStore, currentHostAddress, tableId);
     }

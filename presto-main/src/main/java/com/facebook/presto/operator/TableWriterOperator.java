@@ -28,6 +28,7 @@ import com.facebook.presto.execution.TaskMetadataContext;
 import com.facebook.presto.execution.scheduler.ExecutionWriterTarget;
 import com.facebook.presto.execution.scheduler.ExecutionWriterTarget.CreateHandle;
 import com.facebook.presto.execution.scheduler.ExecutionWriterTarget.InsertHandle;
+import com.facebook.presto.execution.scheduler.ExecutionWriterTarget.MergeHandle;
 import com.facebook.presto.execution.scheduler.ExecutionWriterTarget.RefreshMaterializedViewHandle;
 import com.facebook.presto.memory.context.LocalMemoryContext;
 import com.facebook.presto.metadata.ConnectorMetadataUpdaterManager;
@@ -166,6 +167,9 @@ public class TableWriterOperator
             }
             if (target instanceof InsertHandle) {
                 return pageSinkManager.createPageSink(session, ((InsertHandle) target).getHandle(), pageSinkContextBuilder.build());
+            }
+            if (target instanceof MergeHandle) {
+                return pageSinkManager.createPageSink(session, ((MergeHandle) target).getHandle(), pageSinkContextBuilder.build());
             }
             if (target instanceof RefreshMaterializedViewHandle) {
                 return pageSinkManager.createPageSink(session, ((RefreshMaterializedViewHandle) target).getHandle(), pageSinkContextBuilder.build());

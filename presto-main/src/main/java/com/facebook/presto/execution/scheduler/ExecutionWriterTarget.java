@@ -30,6 +30,7 @@ import static java.util.Objects.requireNonNull;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = ExecutionWriterTarget.CreateHandle.class, name = "CreateHandle"),
         @JsonSubTypes.Type(value = ExecutionWriterTarget.InsertHandle.class, name = "InsertHandle"),
+        @JsonSubTypes.Type(value = ExecutionWriterTarget.MergeHandle.class, name = "MergeHandle"),
         @JsonSubTypes.Type(value = ExecutionWriterTarget.DeleteHandle.class, name = "DeleteHandle"),
         @JsonSubTypes.Type(value = ExecutionWriterTarget.RefreshMaterializedViewHandle.class, name = "RefreshMaterializedViewHandle"),
         @JsonSubTypes.Type(value = ExecutionWriterTarget.UpdateHandle.class, name = "UpdateHandle")})
