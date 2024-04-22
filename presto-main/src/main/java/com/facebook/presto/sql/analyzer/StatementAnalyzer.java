@@ -386,6 +386,7 @@ class StatementAnalyzer
             System.out.println("MEREAEJRJEAHRJEARHJEA");
             Table source = merge.getSource();
             QualifiedObjectName targetTable = createQualifiedObjectName(session, merge, merge.getTarget().getName());
+            QualifiedObjectName sourceTable = createQualifiedObjectName(session, merge, source.getName());
 
             MetadataHandle metadataHandle = analysis.getMetadataHandle();
             if (getViewDefinition(session, metadataResolver, metadataHandle, targetTable).isPresent()) {
@@ -401,14 +402,60 @@ class StatementAnalyzer
             Map<String, ColumnMetadata> columns = allColumns.stream()
                     .collect(toImmutableMap(ColumnMetadata::getName, Function.identity()));
 
-            // analyze the query that creates the data
-            Scope queryScope = process(merge, scope);
+            // analyze the source table that creates the data
+            Scope queryScope = process(source, scope);
             analysis.setUpdateType("MERGE");
-            TableColumnMetadata tableColumnsMetadata = getTableColumnsMetadata(session, metadataResolver, metadataHandle, targetTable);
-            // verify the insert destination columns match the query
+            TableColumnMetadata targetColumnsMetadata = getTableColumnsMetadata(session, metadataResolver, metadataHandle, targetTable);
+            TableColumnMetadata sourceColumnsMetadata = getTableColumnsMetadata(session, metadataResolver, metadataHandle, sourceTable);
+
+            // verify the merge destination columns match the query
             analysis.addAccessControlCheckForTable(TABLE_MERGE, new AccessControlInfoForTable(accessControl, session.getIdentity(), session.getTransactionId(), session.getAccessControlContext(), targetTable));
 
-            return null;
+            List<ColumnMetadata> columnsMetadata = targetColumnsMetadata.getColumnsMetadata();
+            List<String> targetTableColumns = columnsMetadata.stream()
+                    .filter(column -> !column.isHidden())
+                    .map(ColumnMetadata::getName)
+                    .collect(toImmutableList());
+
+            List<String> sourceColumnNames = columnsMetadata.stream()
+                    .filter(column -> !column.isHidden())
+                    .map(ColumnMetadata::getName)
+                    .collect(toImmutableList());
+
+            List<String> mergeColumns;
+            if (sourceColumnNames.size() > 0) {
+                mergeColumns = sourceColumnNames.stream()
+                        .map(column -> column.toLowerCase(ENGLISH))
+                        .collect(toImmutableList());
+
+                Set<String> columnNames = new HashSet<>();
+                for (String insertColumn : mergeColumns) {
+                    if (!targetTableColumns.contains(insertColumn)) {
+                        throw new SemanticException(MISSING_COLUMN, merge, "Merge column name does not exist in target table: %s", insertColumn);
+                    }
+                    if (!columnNames.add(insertColumn)) {
+                        throw new SemanticException(DUPLICATE_COLUMN_NAME, merge, "Merge column name is specified more than once: %s", insertColumn);
+                    }
+                }
+            }
+            else {
+                mergeColumns = targetTableColumns;
+            }
+
+            List<ColumnMetadata> expectedColumns = mergeColumns.stream()
+                    .map(insertColumn -> getColumnMetadata(columnsMetadata, insertColumn))
+                    .collect(toImmutableList());
+
+            checkTypesMatchForMerge(merge, queryScope, expectedColumns);
+
+            Map<String, ColumnHandle> columnHandles = targetColumnsMetadata.getColumnHandles();
+            analysis.setMerge(new Analysis.Merge(
+                    targetColumnsMetadata.getTableHandle().get(),
+                    sourceColumnsMetadata.getTableHandle().get(),
+                    merge.getCondition(),
+                    mergeColumns.stream().map(columnHandles::get).collect(toImmutableList())));
+
+            return createAndAssignScope(merge, scope, Field.newUnqualified(merge.getLocation(), "rows", BIGINT));
         }
 
         @Override
@@ -499,16 +546,6 @@ class StatementAnalyzer
 
             for (int i = 0; i < Math.max(expectedColumns.size(), queryColumnTypes.size()); i++) {
                 Node node = merge;
-                QueryBody source = merge.getSource();
-                if (source instanceof Values) {
-                    List<Expression> rows = ((Values) source).getRows();
-                    checkState(!rows.isEmpty(), "Missing column values");
-                    node = rows.get(0);
-                    if (node instanceof Row) {
-                        int columnIndex = Math.min(i, queryColumnTypes.size() - 1);
-                        node = ((Row) rows.get(0)).getItems().get(columnIndex);
-                    }
-                }
                 if (i == expectedColumns.size()) {
                     throw new SemanticException(MISMATCHED_SET_COLUMN_TYPES,
                             node,

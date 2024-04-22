@@ -188,7 +188,7 @@ public class AccessDeniedException
 
     public static void denyMergeTable(String tableName)
     {
-        denyInsertTable(tableName, null);
+        denyMergeTable(tableName, null);
     }
 
     public static void denyMergeTable(String tableName, String extraInfo)

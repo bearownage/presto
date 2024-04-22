@@ -46,6 +46,7 @@ import static com.facebook.presto.spi.security.AccessDeniedException.denyDropSch
 import static com.facebook.presto.spi.security.AccessDeniedException.denyDropTable;
 import static com.facebook.presto.spi.security.AccessDeniedException.denyDropView;
 import static com.facebook.presto.spi.security.AccessDeniedException.denyInsertTable;
+import static com.facebook.presto.spi.security.AccessDeniedException.denyMergeTable;
 import static com.facebook.presto.spi.security.AccessDeniedException.denyRenameColumn;
 import static com.facebook.presto.spi.security.AccessDeniedException.denyRenameSchema;
 import static com.facebook.presto.spi.security.AccessDeniedException.denyRenameTable;
@@ -231,7 +232,7 @@ public class TestingAccessControlManager
     public void checkCanMergeIntoTable(TransactionId transactionId, Identity identity, AccessControlContext context, QualifiedObjectName tableName)
     {
         if (shouldDenyPrivilege(identity.getUser(), tableName.getObjectName(), MERGE_TABLE)) {
-            denyInsertTable(tableName.toString());
+            denyMergeTable(tableName.toString());
         }
         if (denyPrivileges.isEmpty()) {
             super.checkCanMergeIntoTable(transactionId, identity, context, tableName);

@@ -1036,12 +1036,14 @@ public class Analysis
         private final TableHandle target;
         private final TableHandle source;
         private final Expression expression;
+        private final List<ColumnHandle> columns;
 
-        public Merge(TableHandle target, TableHandle source, Expression expression)
+        public Merge(TableHandle target, TableHandle source, Expression expression, List<ColumnHandle> columns)
         {
             this.target = requireNonNull(target, "target is null");
             this.source = requireNonNull(source, "query is null");
             this.expression = requireNonNull(expression, "expression is null");
+            this.columns = requireNonNull(columns, "columns is null");
         }
 
         public TableHandle getSource()
@@ -1057,6 +1059,11 @@ public class Analysis
         public Expression getExpression()
         {
             return expression;
+        }
+
+        public List<ColumnHandle> getColumns()
+        {
+            return columns;
         }
     }
 
