@@ -1034,19 +1034,19 @@ public class Analysis
     public static final class Merge
     {
         private final TableHandle target;
-        private final Query query;
-        private final JoinCriteria joinCriteria;
+        private final TableHandle source;
+        private final Expression expression;
 
-        public Merge(TableHandle target, Query query, JoinCriteria joinCriteria)
+        public Merge(TableHandle target, TableHandle source, Expression expression)
         {
             this.target = requireNonNull(target, "target is null");
-            this.query = requireNonNull(query, "query is null");
-            this.joinCriteria = requireNonNull(joinCriteria, "joinCriteria is null");
+            this.source = requireNonNull(source, "query is null");
+            this.expression = requireNonNull(expression, "expression is null");
         }
 
-        public Query getQuery()
+        public TableHandle getSource()
         {
-            return query;
+            return source;
         }
 
         public TableHandle getTarget()
@@ -1054,9 +1054,9 @@ public class Analysis
             return target;
         }
 
-        public JoinCriteria getJoinCriteria()
+        public Expression getExpression()
         {
-            return joinCriteria;
+            return expression;
         }
     }
 

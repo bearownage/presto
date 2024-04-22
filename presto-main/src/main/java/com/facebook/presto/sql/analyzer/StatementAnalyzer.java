@@ -485,6 +485,69 @@ class StatementAnalyzer
                     .orElseThrow(() -> new IllegalArgumentException(String.format("Invalid column name: %s", columnName)));
         }
 
+        private void checkTypesMatchForMerge(Merge merge, Scope queryScope, List<ColumnMetadata> expectedColumns)
+        {
+            List<Type> queryColumnTypes = queryScope.getRelationType().getVisibleFields().stream()
+                    .map(Field::getType)
+                    .collect(toImmutableList());
+
+            String errorMessage = "";
+            if (expectedColumns.size() != queryColumnTypes.size()) {
+                errorMessage = format("Insert query has %d expression(s) but expected %d target column(s). ",
+                        queryColumnTypes.size(), expectedColumns.size());
+            }
+
+            for (int i = 0; i < Math.max(expectedColumns.size(), queryColumnTypes.size()); i++) {
+                Node node = merge;
+                QueryBody source = merge.getSource();
+                if (source instanceof Values) {
+                    List<Expression> rows = ((Values) source).getRows();
+                    checkState(!rows.isEmpty(), "Missing column values");
+                    node = rows.get(0);
+                    if (node instanceof Row) {
+                        int columnIndex = Math.min(i, queryColumnTypes.size() - 1);
+                        node = ((Row) rows.get(0)).getItems().get(columnIndex);
+                    }
+                }
+                if (i == expectedColumns.size()) {
+                    throw new SemanticException(MISMATCHED_SET_COLUMN_TYPES,
+                            node,
+                            errorMessage + "Mismatch at column %d",
+                            i + 1);
+                }
+                if (i == queryColumnTypes.size()) {
+                    throw new SemanticException(MISMATCHED_SET_COLUMN_TYPES,
+                            node,
+                            errorMessage + "Mismatch at column %d: '%s'",
+                            i + 1,
+                            expectedColumns.get(i).getName());
+                }
+                if (!functionAndTypeResolver.canCoerce(
+                        queryColumnTypes.get(i),
+                        expectedColumns.get(i).getType())) {
+                    if (queryColumnTypes.get(i) instanceof RowType && expectedColumns.get(i).getType() instanceof RowType) {
+                        String fieldName = expectedColumns.get(i).getName();
+                        List<Type> columnRowTypes = queryColumnTypes.get(i).getTypeParameters();
+                        List<RowType.Field> expectedRowFields = ((RowType) expectedColumns.get(i).getType()).getFields();
+                        checkTypesMatchForNestedStructs(
+                                node,
+                                errorMessage,
+                                i + 1,
+                                fieldName,
+                                expectedRowFields,
+                                columnRowTypes);
+                    }
+                    throw new SemanticException(MISMATCHED_SET_COLUMN_TYPES,
+                            node,
+                            errorMessage + "Mismatch at column %d: '%s' is of type %s but expression is of type %s",
+                            i + 1,
+                            expectedColumns.get(i).getName(),
+                            expectedColumns.get(i).getType(),
+                            queryColumnTypes.get(i));
+                }
+            }
+        }
+
         private void checkTypesMatchForInsert(Insert insert, Scope queryScope, List<ColumnMetadata> expectedColumns)
         {
             List<Type> queryColumnTypes = queryScope.getRelationType().getVisibleFields().stream()

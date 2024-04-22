@@ -70,6 +70,7 @@ import com.facebook.presto.sql.tree.Parameter;
 import com.facebook.presto.sql.tree.Query;
 import com.facebook.presto.sql.tree.RefreshMaterializedView;
 import com.facebook.presto.sql.tree.Statement;
+import com.facebook.presto.sql.tree.Table;
 import com.facebook.presto.sql.tree.Update;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -302,9 +303,27 @@ public class LogicalPlanner
 
         TableHandle tableHandle = mergeAnalysis.getTarget();
         WriterTarget target = new MergeReference(tableHandle, metadata.getTableMetadata(session, tableHandle).getTable());
-        //return buildInternalInsertPlan(tableHandle, columnHandles, insertStatement.getQuery(), analysis, target);
+        return buildInternalMergePlan(tableHandle, null, mergeStatement.getSource(), analysis, target);
+    }
 
-        System.out.print("MERGEE PLAAANNNN");
+    private RelationPlan buildInternalMergePlan(
+            TableHandle tableHandle,
+            List<ColumnHandle> columnHandles,
+            Table source,
+            Analysis analysis,
+            WriterTarget target)
+    {
+        TableMetadata tableMetadata = metadata.getTableMetadata(session, tableHandle);
+
+        List<ColumnMetadata> visibleTableColumns = tableMetadata.getColumns().stream()
+                .filter(column -> !column.isHidden())
+                .collect(toImmutableList());
+        List<String> visibleTableColumnNames = visibleTableColumns.stream()
+                .map(ColumnMetadata::getName)
+                .collect(toImmutableList());
+
+        SqlPlannerContext context = new SqlPlannerContext(0);
+        RelationPlan plan = createRelationPlan(analysis, source, context);
 
         return null;
     }
@@ -571,6 +590,12 @@ public class LogicalPlanner
     {
         return new RelationPlanner(analysis, variableAllocator, idAllocator, buildLambdaDeclarationToVariableMap(analysis, variableAllocator), metadata, session, sqlParser)
                 .process(query, context);
+    }
+
+    private RelationPlan createRelationPlan(Analysis analysis, Table source, SqlPlannerContext context)
+    {
+        return new RelationPlanner(analysis, variableAllocator, idAllocator, buildLambdaDeclarationToVariableMap(analysis, variableAllocator), metadata, session, sqlParser)
+                .process(source, context);
     }
 
     private ConnectorTableMetadata createTableMetadata(QualifiedObjectName table, List<ColumnMetadata> columns, Map<String, Expression> propertyExpressions, Map<NodeRef<Parameter>, Expression> parameters, Optional<String> comment)
