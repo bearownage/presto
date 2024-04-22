@@ -285,7 +285,7 @@ public class MemoryMetadata
     @Override
     public synchronized Optional<ConnectorOutputMetadata> finishMerge(ConnectorSession session, ConnectorMergeTableHandle mergeHandle, Collection<Slice> fragments, Collection<ComputedStatistics> computedStatistics)
     {
-        requireNonNull(mergeHandle, "insertHandle is null");
+        requireNonNull(mergeHandle, "memoryHandle is null");
         MemoryMergeTableHandle memoryMergeHandle = (MemoryMergeTableHandle) mergeHandle;
 
         updateRowsOnHosts(memoryMergeHandle.getTable(), fragments);
