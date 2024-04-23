@@ -120,8 +120,8 @@ public class TableWriterOperator
             this.metadataUpdaterManager = requireNonNull(metadataUpdaterManager, "metadataUpdaterManager is null");
             this.taskMetadataContext = requireNonNull(taskMetadataContext, "taskMetadataContext is null");
             checkArgument(
-                    writerTarget instanceof CreateHandle || writerTarget instanceof InsertHandle || writerTarget instanceof RefreshMaterializedViewHandle,
-                    "writerTarget must be CreateHandle or InsertHandle or RefreshMaterializedViewHandle");
+                    writerTarget instanceof CreateHandle || writerTarget instanceof InsertHandle || writerTarget instanceof MergeHandle || writerTarget instanceof RefreshMaterializedViewHandle,
+                    "writerTarget must be CreateHandle or InsertHandle or MergeHandle or RefreshMaterializedViewHandle");
             this.target = requireNonNull(writerTarget, "writerTarget is null");
             this.session = session;
             this.statisticsAggregationOperatorFactory = requireNonNull(statisticsAggregationOperatorFactory, "statisticsAggregationOperatorFactory is null");
@@ -185,6 +185,10 @@ public class TableWriterOperator
 
             if (handle instanceof InsertHandle) {
                 return ((InsertHandle) handle).getHandle().getConnectorId();
+            }
+
+            if (handle instanceof MergeHandle) {
+                return ((MergeHandle) handle).getHandle().getConnectorId();
             }
 
             if (handle instanceof RefreshMaterializedViewHandle) {
