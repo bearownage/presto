@@ -443,7 +443,7 @@ class StatementAnalyzer
             }
 
             List<ColumnMetadata> expectedColumns = mergeColumns.stream()
-                    .map(insertColumn -> getColumnMetadata(columnsMetadata, insertColumn))
+                    .map(mergeColumn -> getColumnMetadata(columnsMetadata, mergeColumn))
                     .collect(toImmutableList());
 
             checkTypesMatchForMerge(merge, queryScope, expectedColumns);
