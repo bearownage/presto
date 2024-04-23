@@ -411,6 +411,18 @@ class StatementAnalyzer
             // verify the merge destination columns match the query
             analysis.addAccessControlCheckForTable(TABLE_MERGE, new AccessControlInfoForTable(accessControl, session.getIdentity(), session.getTransactionId(), session.getAccessControlContext(), targetTable));
 
+            // Evaludate the ON condition for analysis
+            Expression expression = merge.getCondition();
+            ExpressionAnalysis expressionAnalysis = analyzeExpression(expression, queryScope);
+            Type clauseType = expressionAnalysis.getType(expression);
+            if (!clauseType.equals(BOOLEAN)) {
+                if (!clauseType.equals(UNKNOWN)) {
+                    throw new SemanticException(TYPE_MISMATCH, expression, "JOIN ON clause must evaluate to a boolean: actual type %s", clauseType);
+                }
+                // coerce null to boolean
+                analysis.addCoercion(expression, BOOLEAN, false);
+            }
+
             List<ColumnMetadata> columnsMetadata = targetColumnsMetadata.getColumnsMetadata();
             List<String> targetTableColumns = columnsMetadata.stream()
                     .filter(column -> !column.isHidden())
@@ -423,7 +435,7 @@ class StatementAnalyzer
                     .collect(toImmutableList());
 
             List<String> mergeColumns;
-            if (sourceColumnNames.size() > 0) {
+            if (!sourceColumnNames.isEmpty()) {
                 mergeColumns = sourceColumnNames.stream()
                         .map(column -> column.toLowerCase(ENGLISH))
                         .collect(toImmutableList());
@@ -449,13 +461,19 @@ class StatementAnalyzer
             checkTypesMatchForMerge(merge, queryScope, expectedColumns);
 
             Map<String, ColumnHandle> columnHandles = targetColumnsMetadata.getColumnHandles();
-            analysis.setMerge(new Analysis.Merge(
-                    targetColumnsMetadata.getTableHandle().get(),
-                    sourceColumnsMetadata.getTableHandle().get(),
-                    merge.getCondition(),
-                    mergeColumns.stream().map(columnHandles::get).collect(toImmutableList())));
+            if (targetColumnsMetadata.getTableHandle().isPresent() && sourceColumnsMetadata.getTableHandle().isPresent()) {
+                analysis.setMerge(new Analysis.Merge(
+                        targetColumnsMetadata.getTableHandle().get(),
+                        sourceColumnsMetadata.getTableHandle().get(),
+                        merge.getCondition(),
+                        mergeColumns.stream().map(columnHandles::get).collect(toImmutableList())));
+            }
 
             return createAndAssignScope(merge, scope, Field.newUnqualified(merge.getLocation(), "rows", BIGINT));
+        }
+
+        private void evaluateJoinOnExpression(Expression expression) {
+            // need to register coercions in case when join criteria requires coercion (e.g. join on char(1) = char(2))
         }
 
         @Override
@@ -540,7 +558,7 @@ class StatementAnalyzer
 
             String errorMessage = "";
             if (expectedColumns.size() != queryColumnTypes.size()) {
-                errorMessage = format("Insert query has %d expression(s) but expected %d target column(s). ",
+                errorMessage = format("Merge query has %d expression(s) but expected %d target column(s). ",
                         queryColumnTypes.size(), expectedColumns.size());
             }
 
@@ -3203,4 +3221,5 @@ class StatementAnalyzer
 
         return false;
     }
+
 }
