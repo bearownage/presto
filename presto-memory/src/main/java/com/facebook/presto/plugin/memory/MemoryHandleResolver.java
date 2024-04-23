@@ -16,6 +16,7 @@ package com.facebook.presto.plugin.memory;
 import com.facebook.presto.spi.ColumnHandle;
 import com.facebook.presto.spi.ConnectorHandleResolver;
 import com.facebook.presto.spi.ConnectorInsertTableHandle;
+import com.facebook.presto.spi.ConnectorMergeTableHandle;
 import com.facebook.presto.spi.ConnectorOutputTableHandle;
 import com.facebook.presto.spi.ConnectorSplit;
 import com.facebook.presto.spi.ConnectorTableHandle;
@@ -53,6 +54,12 @@ public final class MemoryHandleResolver
     public Class<? extends ConnectorInsertTableHandle> getInsertTableHandleClass()
     {
         return MemoryInsertTableHandle.class;
+    }
+
+    @Override
+    public Class<? extends ConnectorMergeTableHandle> getMergeTableHandleClass()
+    {
+        return MemoryMergeTableHandle.class;
     }
 
     @Override
