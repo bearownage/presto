@@ -2146,6 +2146,25 @@ public class HiveMetadata
                         .collect(toList())));
     }
 
+    public HiveInsertTableHandle beginMerge(ConnectorSession session, ConnectorTableHandle tableHandle)
+    {
+        return beginMerge(beginMergeInternal(session, tableHandle));
+    }
+
+    private Optional<ConnectorOutputMetadata> beginMergeInternal(ConnectorSession session, ConnectorInsertTableHandle insertHandle, Collection<Slice> fragments, Collection<ComputedStatistics> computedStatistics)
+    {
+        HiveInsertTableHandle handle = (HiveInsertTableHandle) insertHandle;
+        List<PartitionUpdate> partitionUpdates = getPartitionUpdates(session, fragments);
+
+        return Optional.of(new HiveWrittenPartitions(
+                partitionUpdates.stream()
+                        .map(PartitionUpdate::getName)
+                        .map(name -> name.isEmpty() ? UNPARTITIONED_ID : name)
+                        .collect(toList())));
+    }
+
+
+
     /**
      * Deletes all the files not written by the current query from the given partition path.
      * This is required when we are overwriting the partitions by directly writing the new
