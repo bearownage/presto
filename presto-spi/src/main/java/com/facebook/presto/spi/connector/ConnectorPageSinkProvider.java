@@ -28,7 +28,6 @@ public interface ConnectorPageSinkProvider
 
     default ConnectorPageSink createPageSink(ConnectorTransactionHandle transactionHandle, ConnectorSession session, ConnectorMergeTableHandle mergeTableHandle, PageSinkContext pageSinkContext)
     {
-        System.out.println("Merge Table Sink");
         return null;
     }
 }

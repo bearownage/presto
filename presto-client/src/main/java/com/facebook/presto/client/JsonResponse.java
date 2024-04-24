@@ -128,6 +128,7 @@ public final class JsonResponse<T>
 
     public static <T> JsonResponse<T> execute(JsonCodec<T> codec, OkHttpClient client, Request request)
     {
+        long startTime = System.currentTimeMillis();
         try (Response response = client.newCall(request).execute()) {
             // TODO: fix in OkHttp: https://github.com/square/okhttp/issues/3111
             if (((response.code() == 307) || (response.code() == 308)) && client.followRedirects()) {
@@ -137,7 +138,7 @@ public final class JsonResponse<T>
                     return execute(codec, client, request);
                 }
             }
-
+            System.out.println("Time to execute query: " + (System.currentTimeMillis() - startTime));
             ResponseBody responseBody = requireNonNull(response.body());
             String body = responseBody.string();
             if (isJson(responseBody.contentType())) {

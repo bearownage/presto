@@ -383,7 +383,6 @@ class StatementAnalyzer
 
         protected Scope visitMerge(Merge merge, Optional<Scope> scope)
         {
-            System.out.println("MEREAEJRJEAHRJEARHJEA");
             Table source = merge.getSource();
             QualifiedObjectName targetTable = createQualifiedObjectName(session, merge, merge.getTarget().getName());
             QualifiedObjectName sourceTable = createQualifiedObjectName(session, merge, source.getName());
@@ -413,15 +412,17 @@ class StatementAnalyzer
 
             // Evaludate the ON condition for analysis
             Expression expression = merge.getCondition();
-            ExpressionAnalysis expressionAnalysis = analyzeExpression(expression, queryScope);
+            analysis.addCoercion(expression, BOOLEAN, false);
+
+     /*       ExpressionAnalysis expressionAnalysis = analyzeExpression(expression, queryScope);
             Type clauseType = expressionAnalysis.getType(expression);
             if (!clauseType.equals(BOOLEAN)) {
                 if (!clauseType.equals(UNKNOWN)) {
-                    throw new SemanticException(TYPE_MISMATCH, expression, "JOIN ON clause must evaluate to a boolean: actual type %s", clauseType);
+                    throw new SemanticException(TYPE_MISMATCH, expression, "ON clause must evaluate to a boolean: actual type %s", clauseType);
                 }
                 // coerce null to boolean
                 analysis.addCoercion(expression, BOOLEAN, false);
-            }
+            }*/
 
             List<ColumnMetadata> columnsMetadata = targetColumnsMetadata.getColumnsMetadata();
             List<String> targetTableColumns = columnsMetadata.stream()
@@ -479,7 +480,6 @@ class StatementAnalyzer
         @Override
         protected Scope visitInsert(Insert insert, Optional<Scope> scope)
         {
-            System.out.println("INSERTTSSS");
             QualifiedObjectName targetTable = createQualifiedObjectName(session, insert, insert.getTarget());
 
             MetadataHandle metadataHandle = analysis.getMetadataHandle();

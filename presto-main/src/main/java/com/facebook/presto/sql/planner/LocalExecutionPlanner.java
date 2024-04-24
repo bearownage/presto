@@ -3442,7 +3442,6 @@ public class LocalExecutionPlanner
                 return metadata.finishCreateTable(session, ((CreateHandle) target).getHandle(), fragments, statistics);
             }
             else if (target instanceof InsertHandle) {
-                System.out.println("INSERTTTTTT");
                 return metadata.finishInsert(session, ((InsertHandle) target).getHandle(), fragments, statistics);
             }
             else if (target instanceof DeleteHandle) {

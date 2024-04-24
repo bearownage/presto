@@ -204,6 +204,7 @@ public class LocalDispatchQuery
 
     private void startExecution(QueryExecution queryExecution, boolean isDispatching)
     {
+        long startTime = System.currentTimeMillis();
         queryExecutor.execute(() -> {
             if (isDispatching) {
                 try {
@@ -217,6 +218,7 @@ public class LocalDispatchQuery
                     throw t;
                 }
                 finally {
+                    System.out.println("Time Taken to run query: " + (System.currentTimeMillis() - startTime));
                     submitted.set(null);
                 }
             }

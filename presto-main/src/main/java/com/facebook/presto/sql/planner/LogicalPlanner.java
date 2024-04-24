@@ -413,9 +413,11 @@ public class LogicalPlanner
             if (column.isHidden()) {
                 continue;
             }
+            // Create a new variable expression
             VariableReferenceExpression output = variableAllocator.newVariable(getSourceLocation(query.getQueryBody()), column.getName(), column.getType());
             int index = columnHandles.indexOf(columns.get(column.getName()));
             if (index < 0) {
+                // EOF
                 Expression cast = new Cast(new NullLiteral(), column.getType().getTypeSignature().toString());
                 assignments.put(output, rowExpression(cast, context, analysis));
             }
@@ -424,6 +426,7 @@ public class LogicalPlanner
                 Type tableType = column.getType();
                 Type queryType = input.getType();
 
+                //
                 if (queryType.equals(tableType) || metadata.getFunctionAndTypeManager().isTypeOnlyCoercion(queryType, tableType)) {
                     assignments.put(output, input);
                 }

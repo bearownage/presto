@@ -194,7 +194,6 @@ public class MetadataExtractor
         @Override
         protected Void visitInsert(Insert insert, MetadataExtractorContext context)
         {
-            System.out.println("Insert metadata");
             QualifiedObjectName tableName = createQualifiedObjectName(session, insert, insert.getTarget());
             if (tableName.getObjectName().isEmpty()) {
                 throw new SemanticException(MISSING_TABLE, insert, "Table name is empty");
@@ -210,7 +209,6 @@ public class MetadataExtractor
 
         protected Void visitMerge(Merge merge, MetadataExtractorContext context)
         {
-            System.out.println("Merge metadata");
             QualifiedObjectName tableName = createQualifiedObjectName(session, merge, merge.getTarget().getName());
             if (tableName.getObjectName().isEmpty()) {
                 throw new SemanticException(MISSING_TABLE, merge, "Table name is empty");

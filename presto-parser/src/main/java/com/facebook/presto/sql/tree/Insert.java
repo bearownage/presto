@@ -60,7 +60,6 @@ public final class Insert
     @Override
     public <R, C> R accept(AstVisitor<R, C> visitor, C context)
     {
-        System.out.println("Insert accept");
         return visitor.visitInsert(this, context);
     }
 
