@@ -3438,7 +3438,6 @@ public class LocalExecutionPlanner
     {
         return (fragments, statistics) -> {
             if (target instanceof CreateHandle) {
-                System.out.println("CREAAATTEE");
                 return metadata.finishCreateTable(session, ((CreateHandle) target).getHandle(), fragments, statistics);
             }
             else if (target instanceof InsertHandle) {
@@ -3456,7 +3455,6 @@ public class LocalExecutionPlanner
                 return Optional.empty();
             }
             else if (target instanceof ExecutionWriterTarget.MergeHandle) {
-                System.out.println("LOADDING PLANNER MEGERERERE");
                 return Optional.empty();
             }
             else {

@@ -138,7 +138,7 @@ public final class JsonResponse<T>
                     return execute(codec, client, request);
                 }
             }
-            System.out.println("Time to execute query: " + (System.currentTimeMillis() - startTime));
+            // System.out.println("Time to execute query: " + (System.currentTimeMillis() - startTime));
             ResponseBody responseBody = requireNonNull(response.body());
             String body = responseBody.string();
             if (isJson(responseBody.contentType())) {

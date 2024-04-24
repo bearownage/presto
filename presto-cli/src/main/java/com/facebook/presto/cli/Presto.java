@@ -21,6 +21,7 @@ public final class Presto
 
     public static void main(String[] args)
     {
+        System.out.println(args);
         Console console = singleCommand(Console.class).parse(args);
 
         if (console.helpOption.showHelpIfRequested() ||
@@ -30,4 +31,6 @@ public final class Presto
 
         System.exit(console.run() ? 0 : 1);
     }
+
+
 }
