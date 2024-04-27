@@ -450,6 +450,12 @@ public abstract class DefaultTraversalVisitor<R, C>
         return null;
     }
 
+    protected R visitMerge(Merge node, C context)
+    {
+        //process(node.getQuery(), context);
+        return null;
+    }
+
     @Override
     protected R visitDelete(Delete node, C context)
     {

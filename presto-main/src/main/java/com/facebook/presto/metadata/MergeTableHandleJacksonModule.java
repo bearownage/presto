@@ -11,26 +11,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.facebook.presto.cli;
+package com.facebook.presto.metadata;
 
-import static io.airlift.airline.SingleCommand.singleCommand;
+import com.facebook.presto.spi.ConnectorMergeTableHandle;
 
-public final class Presto
+import javax.inject.Inject;
+
+public class MergeTableHandleJacksonModule
+        extends AbstractTypedJacksonModule<ConnectorMergeTableHandle>
 {
-    private Presto() {}
-
-    public static void main(String[] args)
+    @Inject
+    public MergeTableHandleJacksonModule(HandleResolver handleResolver)
     {
-        System.out.println(args);
-        Console console = singleCommand(Console.class).parse(args);
-
-        if (console.helpOption.showHelpIfRequested() ||
-                console.versionOption.showVersionIfRequested()) {
-            return;
-        }
-
-        System.exit(console.run() ? 0 : 1);
+        super(ConnectorMergeTableHandle.class,
+                handleResolver::getId,
+                handleResolver::getMergeTableHandleClass);
     }
-
-
 }

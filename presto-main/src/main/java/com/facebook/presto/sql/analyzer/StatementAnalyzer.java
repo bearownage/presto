@@ -116,6 +116,7 @@ import com.facebook.presto.sql.tree.Lateral;
 import com.facebook.presto.sql.tree.Literal;
 import com.facebook.presto.sql.tree.LogicalBinaryExpression;
 import com.facebook.presto.sql.tree.LongLiteral;
+import com.facebook.presto.sql.tree.Merge;
 import com.facebook.presto.sql.tree.NaturalJoin;
 import com.facebook.presto.sql.tree.Node;
 import com.facebook.presto.sql.tree.NodeLocation;
@@ -207,6 +208,7 @@ import static com.facebook.presto.spi.StandardWarningCode.REDUNDANT_ORDER_BY;
 import static com.facebook.presto.spi.analyzer.AccessControlRole.TABLE_CREATE;
 import static com.facebook.presto.spi.analyzer.AccessControlRole.TABLE_DELETE;
 import static com.facebook.presto.spi.analyzer.AccessControlRole.TABLE_INSERT;
+import static com.facebook.presto.spi.analyzer.AccessControlRole.TABLE_MERGE;
 import static com.facebook.presto.spi.connector.ConnectorTableVersion.VersionType;
 import static com.facebook.presto.spi.function.FunctionKind.AGGREGATE;
 import static com.facebook.presto.spi.function.FunctionKind.WINDOW;
@@ -379,6 +381,102 @@ class StatementAnalyzer
             throw new SemanticException(NOT_SUPPORTED, node, "USE statement is not supported");
         }
 
+        protected Scope visitMerge(Merge merge, Optional<Scope> scope)
+        {
+            Table source = merge.getSource();
+            QualifiedObjectName targetTable = createQualifiedObjectName(session, merge, merge.getTarget().getName());
+            QualifiedObjectName sourceTable = createQualifiedObjectName(session, merge, source.getName());
+
+            MetadataHandle metadataHandle = analysis.getMetadataHandle();
+            if (getViewDefinition(session, metadataResolver, metadataHandle, targetTable).isPresent()) {
+                throw new SemanticException(NOT_SUPPORTED, merge, "Merge into views is not supported");
+            }
+
+            if (getMaterializedViewDefinition(session, metadataResolver, metadataHandle, targetTable).isPresent()) {
+                throw new SemanticException(NOT_SUPPORTED, merge, "Merging into materialized views is not supported");
+            }
+
+            TableColumnMetadata tableMetadata = getTableColumnsMetadata(session, metadataResolver, metadataHandle, targetTable);
+            List<ColumnMetadata> allColumns = tableMetadata.getColumnsMetadata();
+            Map<String, ColumnMetadata> columns = allColumns.stream()
+                    .collect(toImmutableMap(ColumnMetadata::getName, Function.identity()));
+
+            // analyze the source table that creates the data
+            Scope queryScope = process(source, scope);
+            analysis.setUpdateType("MERGE");
+            TableColumnMetadata targetColumnsMetadata = getTableColumnsMetadata(session, metadataResolver, metadataHandle, targetTable);
+            TableColumnMetadata sourceColumnsMetadata = getTableColumnsMetadata(session, metadataResolver, metadataHandle, sourceTable);
+
+            // verify the merge destination columns match the query
+            analysis.addAccessControlCheckForTable(TABLE_MERGE, new AccessControlInfoForTable(accessControl, session.getIdentity(), session.getTransactionId(), session.getAccessControlContext(), targetTable));
+
+            // Evaludate the ON condition for analysis
+            Expression expression = merge.getCondition();
+            analysis.addCoercion(expression, BOOLEAN, false);
+
+     /*       ExpressionAnalysis expressionAnalysis = analyzeExpression(expression, queryScope);
+            Type clauseType = expressionAnalysis.getType(expression);
+            if (!clauseType.equals(BOOLEAN)) {
+                if (!clauseType.equals(UNKNOWN)) {
+                    throw new SemanticException(TYPE_MISMATCH, expression, "ON clause must evaluate to a boolean: actual type %s", clauseType);
+                }
+                // coerce null to boolean
+                analysis.addCoercion(expression, BOOLEAN, false);
+            }*/
+
+            List<ColumnMetadata> columnsMetadata = targetColumnsMetadata.getColumnsMetadata();
+            List<String> targetTableColumns = columnsMetadata.stream()
+                    .filter(column -> !column.isHidden())
+                    .map(ColumnMetadata::getName)
+                    .collect(toImmutableList());
+
+            List<String> sourceColumnNames = columnsMetadata.stream()
+                    .filter(column -> !column.isHidden())
+                    .map(ColumnMetadata::getName)
+                    .collect(toImmutableList());
+
+            List<String> mergeColumns;
+            if (!sourceColumnNames.isEmpty()) {
+                mergeColumns = sourceColumnNames.stream()
+                        .map(column -> column.toLowerCase(ENGLISH))
+                        .collect(toImmutableList());
+
+                Set<String> columnNames = new HashSet<>();
+                for (String insertColumn : mergeColumns) {
+                    if (!targetTableColumns.contains(insertColumn)) {
+                        throw new SemanticException(MISSING_COLUMN, merge, "Merge column name does not exist in target table: %s", insertColumn);
+                    }
+                    if (!columnNames.add(insertColumn)) {
+                        throw new SemanticException(DUPLICATE_COLUMN_NAME, merge, "Merge column name is specified more than once: %s", insertColumn);
+                    }
+                }
+            }
+            else {
+                mergeColumns = targetTableColumns;
+            }
+
+            List<ColumnMetadata> expectedColumns = mergeColumns.stream()
+                    .map(mergeColumn -> getColumnMetadata(columnsMetadata, mergeColumn))
+                    .collect(toImmutableList());
+
+            checkTypesMatchForMerge(merge, queryScope, expectedColumns);
+
+            Map<String, ColumnHandle> columnHandles = targetColumnsMetadata.getColumnHandles();
+            if (targetColumnsMetadata.getTableHandle().isPresent() && sourceColumnsMetadata.getTableHandle().isPresent()) {
+                analysis.setMerge(new Analysis.Merge(
+                        targetColumnsMetadata.getTableHandle().get(),
+                        sourceColumnsMetadata.getTableHandle().get(),
+                        merge.getCondition(),
+                        mergeColumns.stream().map(columnHandles::get).collect(toImmutableList())));
+            }
+
+            return createAndAssignScope(merge, scope, Field.newUnqualified(merge.getLocation(), "rows", BIGINT));
+        }
+
+        private void evaluateJoinOnExpression(Expression expression) {
+            // need to register coercions in case when join criteria requires coercion (e.g. join on char(1) = char(2))
+        }
+
         @Override
         protected Scope visitInsert(Insert insert, Optional<Scope> scope)
         {
@@ -450,6 +548,59 @@ class StatementAnalyzer
                     .filter(columnMetadata -> columnMetadata.getName().equals(columnName))
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException(String.format("Invalid column name: %s", columnName)));
+        }
+
+        private void checkTypesMatchForMerge(Merge merge, Scope queryScope, List<ColumnMetadata> expectedColumns)
+        {
+            List<Type> queryColumnTypes = queryScope.getRelationType().getVisibleFields().stream()
+                    .map(Field::getType)
+                    .collect(toImmutableList());
+
+            String errorMessage = "";
+            if (expectedColumns.size() != queryColumnTypes.size()) {
+                errorMessage = format("Merge query has %d expression(s) but expected %d target column(s). ",
+                        queryColumnTypes.size(), expectedColumns.size());
+            }
+
+            for (int i = 0; i < Math.max(expectedColumns.size(), queryColumnTypes.size()); i++) {
+                Node node = merge;
+                if (i == expectedColumns.size()) {
+                    throw new SemanticException(MISMATCHED_SET_COLUMN_TYPES,
+                            node,
+                            errorMessage + "Mismatch at column %d",
+                            i + 1);
+                }
+                if (i == queryColumnTypes.size()) {
+                    throw new SemanticException(MISMATCHED_SET_COLUMN_TYPES,
+                            node,
+                            errorMessage + "Mismatch at column %d: '%s'",
+                            i + 1,
+                            expectedColumns.get(i).getName());
+                }
+                if (!functionAndTypeResolver.canCoerce(
+                        queryColumnTypes.get(i),
+                        expectedColumns.get(i).getType())) {
+                    if (queryColumnTypes.get(i) instanceof RowType && expectedColumns.get(i).getType() instanceof RowType) {
+                        String fieldName = expectedColumns.get(i).getName();
+                        List<Type> columnRowTypes = queryColumnTypes.get(i).getTypeParameters();
+                        List<RowType.Field> expectedRowFields = ((RowType) expectedColumns.get(i).getType()).getFields();
+                        checkTypesMatchForNestedStructs(
+                                node,
+                                errorMessage,
+                                i + 1,
+                                fieldName,
+                                expectedRowFields,
+                                columnRowTypes);
+                    }
+                    throw new SemanticException(MISMATCHED_SET_COLUMN_TYPES,
+                            node,
+                            errorMessage + "Mismatch at column %d: '%s' is of type %s but expression is of type %s",
+                            i + 1,
+                            expectedColumns.get(i).getName(),
+                            expectedColumns.get(i).getType(),
+                            queryColumnTypes.get(i));
+                }
+            }
         }
 
         private void checkTypesMatchForInsert(Insert insert, Scope queryScope, List<ColumnMetadata> expectedColumns)
@@ -3070,4 +3221,5 @@ class StatementAnalyzer
 
         return false;
     }
+
 }

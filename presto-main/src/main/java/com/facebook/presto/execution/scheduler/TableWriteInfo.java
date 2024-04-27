@@ -99,6 +99,10 @@ public class TableWriteInfo
                 TableWriterNode.InsertReference insert = (TableWriterNode.InsertReference) target;
                 return Optional.of(new ExecutionWriterTarget.InsertHandle(metadata.beginInsert(session, insert.getHandle()), insert.getSchemaTableName()));
             }
+            if (target instanceof TableWriterNode.MergeReference) {
+                TableWriterNode.MergeReference merge = (TableWriterNode.MergeReference) target;
+                return Optional.of(new ExecutionWriterTarget.MergeHandle(metadata.beginMerge(session, merge.getHandle()), merge.getSchemaTableName()));
+            }
             if (target instanceof TableWriterNode.DeleteHandle) {
                 TableWriterNode.DeleteHandle delete = (TableWriterNode.DeleteHandle) target;
                 return Optional.of(new ExecutionWriterTarget.DeleteHandle(metadata.beginDelete(session, delete.getHandle()), delete.getSchemaTableName()));

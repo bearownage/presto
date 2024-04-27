@@ -28,6 +28,7 @@ import com.facebook.presto.execution.TaskMetadataContext;
 import com.facebook.presto.execution.scheduler.ExecutionWriterTarget;
 import com.facebook.presto.execution.scheduler.ExecutionWriterTarget.CreateHandle;
 import com.facebook.presto.execution.scheduler.ExecutionWriterTarget.InsertHandle;
+import com.facebook.presto.execution.scheduler.ExecutionWriterTarget.MergeHandle;
 import com.facebook.presto.execution.scheduler.ExecutionWriterTarget.RefreshMaterializedViewHandle;
 import com.facebook.presto.memory.context.LocalMemoryContext;
 import com.facebook.presto.metadata.ConnectorMetadataUpdaterManager;
@@ -119,8 +120,8 @@ public class TableWriterOperator
             this.metadataUpdaterManager = requireNonNull(metadataUpdaterManager, "metadataUpdaterManager is null");
             this.taskMetadataContext = requireNonNull(taskMetadataContext, "taskMetadataContext is null");
             checkArgument(
-                    writerTarget instanceof CreateHandle || writerTarget instanceof InsertHandle || writerTarget instanceof RefreshMaterializedViewHandle,
-                    "writerTarget must be CreateHandle or InsertHandle or RefreshMaterializedViewHandle");
+                    writerTarget instanceof CreateHandle || writerTarget instanceof InsertHandle || writerTarget instanceof MergeHandle || writerTarget instanceof RefreshMaterializedViewHandle,
+                    "writerTarget must be CreateHandle or InsertHandle or MergeHandle or RefreshMaterializedViewHandle");
             this.target = requireNonNull(writerTarget, "writerTarget is null");
             this.session = session;
             this.statisticsAggregationOperatorFactory = requireNonNull(statisticsAggregationOperatorFactory, "statisticsAggregationOperatorFactory is null");
@@ -167,6 +168,9 @@ public class TableWriterOperator
             if (target instanceof InsertHandle) {
                 return pageSinkManager.createPageSink(session, ((InsertHandle) target).getHandle(), pageSinkContextBuilder.build());
             }
+            if (target instanceof MergeHandle) {
+                return pageSinkManager.createPageSink(session, ((MergeHandle) target).getHandle(), pageSinkContextBuilder.build());
+            }
             if (target instanceof RefreshMaterializedViewHandle) {
                 return pageSinkManager.createPageSink(session, ((RefreshMaterializedViewHandle) target).getHandle(), pageSinkContextBuilder.build());
             }
@@ -181,6 +185,10 @@ public class TableWriterOperator
 
             if (handle instanceof InsertHandle) {
                 return ((InsertHandle) handle).getHandle().getConnectorId();
+            }
+
+            if (handle instanceof MergeHandle) {
+                return ((MergeHandle) handle).getHandle().getConnectorId();
             }
 
             if (handle instanceof RefreshMaterializedViewHandle) {

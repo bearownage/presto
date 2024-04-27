@@ -140,6 +140,9 @@ public class AnalyzerUtil
                 case TABLE_DELETE:
                     accessControl.checkCanDeleteFromTable(transactionId.get(), identity, accessControlContext, tableName);
                     break;
+                case TABLE_MERGE:
+                    //accessControl.checkCanMergeIntoTable(transactionId.get(), identity, accessControlContext, tableName);
+                    break;
                 default:
                     throw new UnsupportedOperationException("Unsupported access control role found: " + accessControlRole);
             }

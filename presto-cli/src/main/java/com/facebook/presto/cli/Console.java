@@ -190,6 +190,12 @@ public class Console
                 }
                 String commandPrompt = prompt + "> ";
                 String line = reader.readLine(commandPrompt);
+                //System.out.println(line);
+                try {
+                    line = createPopulationQuery(Integer.parseInt(line));
+                } catch (Exception e) {
+
+                }
 
                 // add buffer to history and clear on user interrupt
                 if (reader.interrupted()) {
@@ -269,6 +275,17 @@ public class Console
         catch (IOException e) {
             System.err.println("Readline error: " + e.getMessage());
         }
+    }
+
+    private static String createPopulationQuery(int numberOfValues) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("INSERT INTO memory.School.Students (ID, name) VALUES ");
+        for (int i = 1; i < numberOfValues; i++) {
+            sb.append("(").append(i).append(", 'a'), ");
+        }
+
+        sb.append("(").append(numberOfValues).append(", 'adam');");
+        return sb.toString();
     }
 
     @VisibleForTesting

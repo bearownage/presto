@@ -168,6 +168,7 @@ public class Analysis
     private Optional<Insert> insert = Optional.empty();
     private Optional<RefreshMaterializedViewAnalysis> refreshMaterializedViewAnalysis = Optional.empty();
     private Optional<TableHandle> analyzeTarget = Optional.empty();
+    private Optional<Merge> merge = Optional.empty();
 
     private Optional<List<ColumnMetadata>> updatedColumns = Optional.empty();
 
@@ -675,6 +676,16 @@ public class Analysis
         return createTableComment;
     }
 
+    public void setMerge(Merge merge)
+    {
+        this.merge = Optional.of(merge);
+    }
+
+    public Optional<Merge> getMerge()
+    {
+        return merge;
+    }
+
     public void setInsert(Insert insert)
     {
         this.insert = Optional.of(insert);
@@ -1015,6 +1026,43 @@ public class Analysis
         public TableHandle getTarget()
         {
             return target;
+        }
+    }
+
+    @Immutable
+    public static final class Merge
+    {
+        private final TableHandle target;
+        private final TableHandle source;
+        private final Expression expression;
+        private final List<ColumnHandle> columns;
+
+        public Merge(TableHandle target, TableHandle source, Expression expression, List<ColumnHandle> columns)
+        {
+            this.target = requireNonNull(target, "target is null");
+            this.source = requireNonNull(source, "query is null");
+            this.expression = requireNonNull(expression, "expression is null");
+            this.columns = requireNonNull(columns, "columns is null");
+        }
+
+        public TableHandle getSource()
+        {
+            return source;
+        }
+
+        public TableHandle getTarget()
+        {
+            return target;
+        }
+
+        public Expression getExpression()
+        {
+            return expression;
+        }
+
+        public List<ColumnHandle> getColumns()
+        {
+            return columns;
         }
     }
 

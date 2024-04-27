@@ -120,6 +120,11 @@ public class AllowAllAccessControl
     }
 
     @Override
+    public void checkCanMergeIntoTable(TransactionId transactionId, Identity identity, AccessControlContext context, QualifiedObjectName tableName)
+    {
+    }
+
+    @Override
     public void checkCanDeleteFromTable(TransactionId transactionId, Identity identity, AccessControlContext context, QualifiedObjectName tableName)
     {
     }

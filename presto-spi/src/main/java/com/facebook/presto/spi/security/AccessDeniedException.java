@@ -186,6 +186,16 @@ public class AccessDeniedException
         throw new AccessDeniedException(format("Cannot insert into table %s%s", tableName, formatExtraInfo(extraInfo)));
     }
 
+    public static void denyMergeTable(String tableName)
+    {
+        denyMergeTable(tableName, null);
+    }
+
+    public static void denyMergeTable(String tableName, String extraInfo)
+    {
+        throw new AccessDeniedException(format("Cannot insert into table %s%s", tableName, formatExtraInfo(extraInfo)));
+    }
+
     public static void denyDeleteTable(String tableName)
     {
         denyDeleteTable(tableName, null);

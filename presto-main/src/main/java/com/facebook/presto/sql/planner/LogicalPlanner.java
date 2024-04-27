@@ -63,12 +63,14 @@ import com.facebook.presto.sql.tree.Expression;
 import com.facebook.presto.sql.tree.Identifier;
 import com.facebook.presto.sql.tree.Insert;
 import com.facebook.presto.sql.tree.LambdaArgumentDeclaration;
+import com.facebook.presto.sql.tree.Merge;
 import com.facebook.presto.sql.tree.NodeRef;
 import com.facebook.presto.sql.tree.NullLiteral;
 import com.facebook.presto.sql.tree.Parameter;
 import com.facebook.presto.sql.tree.Query;
 import com.facebook.presto.sql.tree.RefreshMaterializedView;
 import com.facebook.presto.sql.tree.Statement;
+import com.facebook.presto.sql.tree.Table;
 import com.facebook.presto.sql.tree.Update;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -97,6 +99,7 @@ import static com.facebook.presto.sql.planner.PlannerUtils.newVariable;
 import static com.facebook.presto.sql.planner.TranslateExpressionsUtil.toRowExpression;
 import static com.facebook.presto.sql.planner.plan.TableWriterNode.CreateName;
 import static com.facebook.presto.sql.planner.plan.TableWriterNode.InsertReference;
+import static com.facebook.presto.sql.planner.plan.TableWriterNode.MergeReference;
 import static com.facebook.presto.sql.planner.plan.TableWriterNode.RefreshMaterializedViewReference;
 import static com.facebook.presto.sql.planner.plan.TableWriterNode.UpdateTarget;
 import static com.facebook.presto.sql.planner.plan.TableWriterNode.WriterTarget;
@@ -180,6 +183,9 @@ public class LogicalPlanner
         }
         else if (statement instanceof Explain && ((Explain) statement).isAnalyze()) {
             return createExplainAnalyzePlan(analysis, (Explain) statement);
+        }
+        else if (statement instanceof Merge) {
+            return createMergePlan(analysis, (Merge) statement);
         }
         else if (statement instanceof RefreshMaterializedView) {
             checkState(analysis.getRefreshMaterializedViewAnalysis().isPresent(), "RefreshMaterializedView analysis is missing");
@@ -291,6 +297,86 @@ public class LogicalPlanner
         return buildInternalInsertPlan(tableHandle, columnHandles, viewAnalysis.getQuery(), analysis, target);
     }
 
+    private RelationPlan createMergePlan(Analysis analysis, Merge mergeStatement)
+    {
+        Analysis.Merge mergeAnalysis = analysis.getMerge().get();
+
+        TableHandle tableHandle = mergeAnalysis.getTarget();
+        WriterTarget target = new MergeReference(tableHandle, metadata.getTableMetadata(session, tableHandle).getTable());
+        return buildInternalMergePlan(tableHandle, mergeAnalysis.getColumns(), mergeStatement.getSource(), analysis, target);
+    }
+
+    private RelationPlan buildInternalMergePlan(
+            TableHandle tableHandle,
+            List<ColumnHandle> columnHandles,
+            Table source,
+            Analysis analysis,
+            WriterTarget target)
+    {
+        TableMetadata tableMetadata = metadata.getTableMetadata(session, tableHandle);
+
+        List<ColumnMetadata> visibleTableColumns = tableMetadata.getColumns().stream()
+                .filter(column -> !column.isHidden())
+                .collect(toImmutableList());
+        List<String> visibleTableColumnNames = visibleTableColumns.stream()
+                .map(ColumnMetadata::getName)
+                .collect(toImmutableList());
+
+        SqlPlannerContext context = new SqlPlannerContext(0);
+        RelationPlan plan = createRelationPlan(analysis, source, context);
+
+        Map<String, ColumnHandle> columns = metadata.getColumnHandles(session, tableHandle);
+        Assignments.Builder assignments = Assignments.builder();
+        for (ColumnMetadata column : tableMetadata.getColumns()) {
+            if (column.isHidden()) {
+                continue;
+            }
+            VariableReferenceExpression output = variableAllocator.newVariable(getSourceLocation(source), column.getName(), column.getType());
+            int index = columnHandles.indexOf(columns.get(column.getName()));
+            if (index < 0) {
+                Expression cast = new Cast(new NullLiteral(), column.getType().getTypeSignature().toString());
+                assignments.put(output, rowExpression(cast, context, analysis));
+            }
+            else {
+                VariableReferenceExpression input = plan.getVariable(index);
+                Type tableType = column.getType();
+                Type queryType = input.getType();
+
+                if (queryType.equals(tableType) || metadata.getFunctionAndTypeManager().isTypeOnlyCoercion(queryType, tableType)) {
+                    assignments.put(output, input);
+                }
+                else {
+                    Expression cast = new Cast(createSymbolReference(input), tableType.getTypeSignature().toString());
+                    assignments.put(output, rowExpression(cast, context, analysis));
+                }
+            }
+        }
+        ProjectNode projectNode = new ProjectNode(idAllocator.getNextId(), plan.getRoot(), assignments.build());
+
+        List<Field> fields = visibleTableColumns.stream()
+                .map(column -> Field.newUnqualified(source.getLocation(), column.getName(), column.getType()))
+                .collect(toImmutableList());
+        Scope scope = Scope.builder().withRelationType(RelationId.anonymous(), new RelationType(fields)).build();
+
+        plan = new RelationPlan(projectNode, scope, projectNode.getOutputVariables());
+
+        Optional<NewTableLayout> newTableLayout = metadata.getInsertLayout(session, tableHandle);
+        Optional<NewTableLayout> preferredShuffleLayout = metadata.getPreferredShuffleLayoutForInsert(session, tableHandle);
+
+        String catalogName = tableHandle.getConnectorId().getCatalogName();
+        TableStatisticsMetadata statisticsMetadata = metadata.getStatisticsCollectionMetadataForWrite(session, catalogName, tableMetadata.getMetadata());
+
+        return createTableWriterPlan(
+                analysis,
+                plan,
+                target,
+                visibleTableColumnNames,
+                visibleTableColumns,
+                newTableLayout,
+                preferredShuffleLayout,
+                statisticsMetadata);
+    }
+
     private RelationPlan createInsertPlan(Analysis analysis, Insert insertStatement)
     {
         Analysis.Insert insertAnalysis = analysis.getInsert().get();
@@ -327,9 +413,11 @@ public class LogicalPlanner
             if (column.isHidden()) {
                 continue;
             }
-            VariableReferenceExpression output = variableAllocator.newVariable(getSourceLocation(query), column.getName(), column.getType());
+            // Create a new variable expression
+            VariableReferenceExpression output = variableAllocator.newVariable(getSourceLocation(query.getQueryBody()), column.getName(), column.getType());
             int index = columnHandles.indexOf(columns.get(column.getName()));
             if (index < 0) {
+                // EOF
                 Expression cast = new Cast(new NullLiteral(), column.getType().getTypeSignature().toString());
                 assignments.put(output, rowExpression(cast, context, analysis));
             }
@@ -338,6 +426,7 @@ public class LogicalPlanner
                 Type tableType = column.getType();
                 Type queryType = input.getType();
 
+                //
                 if (queryType.equals(tableType) || metadata.getFunctionAndTypeManager().isTypeOnlyCoercion(queryType, tableType)) {
                     assignments.put(output, input);
                 }
@@ -553,6 +642,12 @@ public class LogicalPlanner
     {
         return new RelationPlanner(analysis, variableAllocator, idAllocator, buildLambdaDeclarationToVariableMap(analysis, variableAllocator), metadata, session, sqlParser)
                 .process(query, context);
+    }
+
+    private RelationPlan createRelationPlan(Analysis analysis, Table source, SqlPlannerContext context)
+    {
+        return new RelationPlanner(analysis, variableAllocator, idAllocator, buildLambdaDeclarationToVariableMap(analysis, variableAllocator), metadata, session, sqlParser)
+                .process(source, context);
     }
 
     private ConnectorTableMetadata createTableMetadata(QualifiedObjectName table, List<ColumnMetadata> columns, Map<String, Expression> propertyExpressions, Map<NodeRef<Parameter>, Expression> parameters, Optional<String> comment)

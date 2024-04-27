@@ -3454,6 +3454,9 @@ public class LocalExecutionPlanner
                 metadata.finishUpdate(session, ((UpdateHandle) target).getHandle(), fragments);
                 return Optional.empty();
             }
+            else if (target instanceof ExecutionWriterTarget.MergeHandle) {
+                return Optional.empty();
+            }
             else {
                 throw new AssertionError("Unhandled target type: " + target.getClass().getName());
             }

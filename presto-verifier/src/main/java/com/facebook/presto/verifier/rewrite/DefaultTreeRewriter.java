@@ -43,6 +43,7 @@ import com.facebook.presto.sql.tree.Join;
 import com.facebook.presto.sql.tree.JoinCriteria;
 import com.facebook.presto.sql.tree.JoinOn;
 import com.facebook.presto.sql.tree.Lateral;
+import com.facebook.presto.sql.tree.Merge;
 import com.facebook.presto.sql.tree.Node;
 import com.facebook.presto.sql.tree.OrderBy;
 import com.facebook.presto.sql.tree.Prepare;
@@ -341,6 +342,18 @@ public class DefaultTreeRewriter<C>
         }
 
         return new Insert(node.getTarget(), columns, (Query) query);
+    }
+
+    @Override
+    protected Node visitMerge(Merge node, C context)
+    {
+        Node source = process(node.getSource(), context);
+        /*Optional<List<Identifier>> columns = node.getSource().getgetColumns().map(columnList -> process(columnList, context));
+        if (node.getQuery() == query && (!columns.isPresent() || sameElements(node.getColumns().get(), columns.get()))) {
+            return node;
+        }*/
+
+        return new Merge(node.getTarget(), node.getSource(), null);
     }
 
     @Override

@@ -11,26 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.facebook.presto.cli;
+package com.facebook.presto.spi;
 
-import static io.airlift.airline.SingleCommand.singleCommand;
-
-public final class Presto
+@SuppressWarnings("MarkerInterface")
+public interface ConnectorMergeTableHandle
 {
-    private Presto() {}
-
-    public static void main(String[] args)
-    {
-        System.out.println(args);
-        Console console = singleCommand(Console.class).parse(args);
-
-        if (console.helpOption.showHelpIfRequested() ||
-                console.versionOption.showVersionIfRequested()) {
-            return;
-        }
-
-        System.exit(console.run() ? 0 : 1);
-    }
-
-
 }

@@ -83,6 +83,12 @@ public class BuiltInQueryAnalysis
             TableHandle target = analysis.getInsert().get().getTarget();
             connectors.add(target.getConnectorId());
         }
+        if (analysis.getMerge().isPresent()) {
+            TableHandle target = analysis.getMerge().get().getTarget();
+            TableHandle source = analysis.getMerge().get().getSource();
+            connectors.add(target.getConnectorId());
+            connectors.add(source.getConnectorId());
+        }
 
         return connectors.build();
     }

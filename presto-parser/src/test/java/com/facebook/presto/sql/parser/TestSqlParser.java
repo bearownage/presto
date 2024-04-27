@@ -89,6 +89,7 @@ import com.facebook.presto.sql.tree.Lateral;
 import com.facebook.presto.sql.tree.LikeClause;
 import com.facebook.presto.sql.tree.LogicalBinaryExpression;
 import com.facebook.presto.sql.tree.LongLiteral;
+import com.facebook.presto.sql.tree.Merge;
 import com.facebook.presto.sql.tree.NaturalJoin;
 import com.facebook.presto.sql.tree.Node;
 import com.facebook.presto.sql.tree.NodeLocation;
@@ -1565,6 +1566,16 @@ public class TestSqlParser
 
         assertStatement("INSERT INTO a (c1, c2) SELECT * FROM t",
                 new Insert(table, Optional.of(ImmutableList.of(identifier("c1"), identifier("c2"))), query));
+    }
+
+    @Test
+    public void testMergeInto()
+    {
+        assertStatement("MERGE INTO t USING s ON a = b",
+                new Merge(table(QualifiedName.of("t")), table(QualifiedName.of("s")),
+                new ComparisonExpression(ComparisonExpression.Operator.EQUAL,
+                        new Identifier("a"),
+                        new Identifier("b"))));
     }
 
     @Test
